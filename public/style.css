@@ -20,6 +20,37 @@ body {
     align-items: center;
     gap: 20px;
 }
+
+/* Global navbar search */
+.global-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(255,255,255,0.12);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.global-search input {
+    border: none;
+    outline: none;
+    padding: 6px 8px;
+    font-size: 14px;
+    width: 260px;
+    background: transparent;
+    color: white;
+}
+.global-search input::placeholder { color: rgba(255,255,255,0.7); }
+.global-search button {
+    background-color: #ffca28; /* amber for contrast */
+    color: #2c3e50;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+}
+.global-search button:hover { filter: brightness(0.95); }
 .logo {
     font-size: 35px;
     font-weight: bold;
@@ -90,20 +121,22 @@ body {
 
 .dropdown-section a {
     display: block;
-    padding: 6px 0;
-    color: #333;
+    padding: 8px 12px;
+    color: #007bff; /* make links blue */
     text-decoration: none;
-    font-size: 13px;
-    transition: color 0.3s ease, background-color 0.3s ease;
-    border-radius: 3px;
-    padding-left: 8px;
-    margin: 2px 0;
+    font-size: 14px;
+    font-weight: 700;
+    transition: color 0.15s ease, background-color 0.15s ease, padding-left 0.15s ease;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 4px 0;
 }
 
 .dropdown-section a:hover {
     color: #0056b3;
     background-color: #f8f9fa;
-    padding-left: 12px;
+    padding-left: 16px;
+    text-decoration: underline;
 }
 
 .dropdown-toggle::after {
@@ -167,6 +200,8 @@ body {
     overflow-y: auto;
     max-height: calc(100vh - 120px);
 }
+/* Prevent the sidebar from shrinking when content expands; keep fixed column width in the flex layout */
+.sidebar { flex: 0 0 250px; }
 
 .search-section {
     margin-bottom: 20px;
@@ -290,6 +325,8 @@ body {
     flex-direction: column;
     gap: 20px;
 }
+/* Allow content to shrink properly inside flex so it doesn't force the sidebar to compress */
+.content { min-width: 0; }
 
 .info-card {
     background-color: #fff;
@@ -507,6 +544,257 @@ body {
     background-color: rgba(0,0,0,0.8);
     z-index: 3000;
     display: none;
+}
+
+/* Info table (Entamoeba Overview) */
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.info-table td {
+    vertical-align: top;
+    padding: 22px;
+    border-right: 1px solid #f0f0f0;
+    background: linear-gradient(180deg, #ffffff, #fbfbfb);
+}
+.info-table tr td:last-child {
+    border-right: none;
+}
+.info-table .left-col {
+    background: linear-gradient(180deg, #fbfff9, #f4fff2);
+    border-right: 1px solid rgba(34,34,34,0.03);
+}
+.info-table .right-col {
+    background: #ffffff;
+}
+.info-table h5 {
+    background: linear-gradient(90deg, rgba(122,30,122,0.06), rgba(34,139,34,0.02));
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+.info-table h5 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+.muted {
+    color: #6b6b6b;
+    margin-bottom: 12px;
+}
+.basic-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #333;
+}
+.basic-list li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+.lab-methods {
+    margin: 0;
+    padding-left: 18px;
+    color: #333;
+}
+.lab-methods li {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+.lab-methods li strong {
+    color: #2c3e50;
+}
+
+/* Laboratory Methods collapsible links styling */
+.lab-section {
+    margin-top: 8px;
+}
+.lab-heading {
+    color: #7a1e7a; /* deep purple */
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.lab-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.lab-list > li {
+    margin-bottom: 12px;
+}
+.lab-link {
+    display: inline-block;
+    background: transparent;
+    color: #2b6bd4; /* blue links */
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+.lab-sublinks {
+    list-style: disc;
+    margin: 8px 0 0 20px;
+    padding: 10px 14px;
+    background-color: #fffde6; /* pale yellow */
+    border: 1px solid #f0e6b8;
+    border-radius: 8px;
+}
+.lab-sublinks li {
+    margin: 10px 0;
+}
+.lab-sublinks a {
+    color: #1a4ea8;
+    text-decoration:none; 
+    font-weight: 600;
+}
+
+/* Emphasize headings in sublists similar to attachment */
+.lab-sublinks li a:hover {
+    color: #103a80;
+    text-decoration: underline;
+}
+
+@media (max-width: 800px) {
+    .lab-sublinks {
+        margin-left: 0;
+        padding-left: 12px;
+    }
+}
+
+/* Make info table stack on small screens */
+@media (max-width: 800px) {
+    .info-table, .info-table tr, .info-table td {
+        display: block;
+        width: 100%;
+    }
+    .info-table td {
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .info-table td:last-child {
+        border-bottom: none;
+    }
+}
+
+/* Modal for content pages (species description etc.) */
+.content-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 4000;
+}
+.content-modal-inner {
+    background: #fffde6; /* pale yellow */
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 1000px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    border: 1px solid #f0e6b8;
+}
+.content-modal-inner { position: relative; }
+.content-modal-inner .modal-close {
+    position: absolute;
+    right: 18px;
+    top: 12px;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #7a1e7a;
+}
+.modal-footer {
+    margin-top: 24px;
+    border-top: 1px solid #efe6c1;
+    padding-top: 12px;
+    text-align: center;
+}
+.modal-footer a {
+    display: inline-block;
+    margin: 6px 12px;
+    text-decoration: none;
+}
+.modal-footer .back-link {
+    color: #7a1e7a;
+    font-weight: 700;
+}
+.modal-footer .home-link {
+    color: #2b6bd4;
+    font-weight: 600;
+}
+.species-page h2 {
+    margin-top: 0;
+}
+.species-page h3 {
+    margin-bottom: 6px;
+    color: #2c3e50;
+}
+.species-page p {
+    line-height: 1.6;
+    color: #222;
+}
+
+/* Treatment table styling to match the vintage pale-yellow bordered look (image 2) */
+.treatment-table {
+    width: 90%;
+    margin: 14px auto;
+    border-collapse: collapse;
+    background: #fffde6; /* pale yellow background for cells */
+    border: 2px solid #d9cfa8; /* outer border */
+}
+.treatment-table th,
+.treatment-table td {
+    border: 1px solid #d9cfa8;
+    padding: 12px 14px;
+    vertical-align: top;
+}
+.treatment-table th {
+    background: #f7f2d8;
+    text-align: center;
+    font-weight: 700;
+    font-size: 18px;
+}
+.treatment-table td {
+    background: #fffbe4;
+    font-size: 15px;
+}
+.treatment-table tbody td:first-child {
+    width: 35%;
+}
+.treatment-table tbody td:nth-child(2) {
+    width: 30%;
+}
+.treatment-table tbody td:nth-child(3) {
+    width: 25%;
+}
+.treatment-table tbody td:nth-child(4) {
+    width: 10%;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .treatment-table {
+        width: 100%;
+        font-size: 14px;
+    }
+    .treatment-table th, .treatment-table td { padding: 10px; }
+}
+
+@media (max-width: 800px) {
+    .content-modal-inner { padding: 16px; }
+    .content-modal .modal-close { right: 12px; top: 8px; }
 }
 
 .admin-panel-container {
@@ -870,4 +1158,44 @@ body {
     border: 1px solid #f5c6cb;
     border-radius: 5px;
     margin: 20px;
+}
+
+/* Global link underline behavior: no underline by default, underline on hover/focus */
+a, a:link, a:visited {
+    text-decoration: none;
+}
+
+a:hover, a:focus {
+    text-decoration: underline;
+}
+
+/* Gallery styles for Entamoeba images */
+.image-gallery {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 18px 0;
+}
+.image-gallery figure {
+    width: 260px;
+    margin: 0;
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.image-gallery img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+.image-gallery figcaption {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #444;
+    font-weight: 600;
 }

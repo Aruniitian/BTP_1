@@ -6,69 +6,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amoeba Database</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Homepage featured image gallery styles (grid, responsive, centered captions) */
+        .home-gallery { margin: 18px 0; }
+        .home-gallery h3 { margin: 0 0 12px 8px; color: #333; }
+        .home-gallery .gallery-grid {
+            display: grid;
+            /* force a 3-column layout on wide screens, 2 on medium, 1 on small */
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            gap: 20px;
+            align-items: start;
+            padding: 8px 12px;
+            max-width: 1100px; /* contain the gallery so it doesn't extend page width */
+            margin: 0 auto; /* center the gallery */
+        }
+        .home-gallery figure {
+            width: 100%;
+            margin: 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .home-gallery img { width:100%; height:auto; display:block; border-radius:6px; }
+        .home-gallery figcaption {
+            font-size:0.95rem;
+            color:#444;
+            padding-top:8px;
+            text-align:center;
+        }
+    @media(max-width:1000px){ .home-gallery .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media(max-width:560px){ .home-gallery .gallery-grid { grid-template-columns: repeat(1, 1fr); } }
+    </style>
 </head>
 
 <body>
     <header class="top-bar">
         <div class="logo">Amoeba DataBase</div>
         <div class="header-right">
-            <!-- Transcript Search -->
-            <div class="data-search" id="transcriptSearchContainer" style="display: none;">
-                <input type="text" id="transcriptSearchInput" placeholder="Enter Transcript ID (e.g., EHI_151170A)" />
-                <button id="transcriptSearchBtn">Search</button>
+            <!-- Global Navbar Search (visible) -->
+            <div class="global-search" id="globalSearchContainer">
+                <input type="text" id="globalSearchInput" placeholder="Search by ID (e.g., EHI_151170A, EIN_000210)">
+                <button id="globalSearchBtn">Search</button>
             </div>
-            <!-- Protein Search -->
-            <div class="data-search" id="proteinSearchContainer" style="display: none;">
-                <input type="text" id="proteinSearchInput" placeholder="Enter Protein ID (e.g., EHI_151170A-p1)" />
-                <button id="proteinSearchBtn">Search</button>
-            </div>
-            <!-- Gene Search -->
-            <div class="data-search" id="geneSearchContainer" style="display: none;">
-                <input type="text" id="geneSearchInput" placeholder="Enter Gene ID (e.g., EHI_151170)" />
-                <button id="geneSearchBtn">Search</button>
-            </div>
-            <!-- Genome Search -->
-            <div class="data-search" id="genomeSearchContainer" style="display: none;">
-                <input type="text" id="genomeSearchInput" placeholder="Enter Sequence ID" />
-                <button id="genomeSearchBtn">Search</button>
-            </div>
-            <!-- CDS Search -->
-            <div class="data-search" id="cdsSearchContainer" style="display: none;">
-                <input type="text" id="cdsSearchInput" placeholder="Enter CDS ID (e.g., EIN_000210-t26_1)" />
-                <button id="cdsSearchBtn">Search</button>
-            </div>
-            <!-- Codon Usage Search -->
-            <div class="data-search" id="codonUsageSearchContainer" style="display: none;">
-                <input type="text" id="codonUsageSearchInput" placeholder="Enter Codon (e.g., UAA, GCU)" />
-                <button id="codonUsageSearchBtn">Search</button>
-            </div>
-            <!-- Gene Aliases Search -->
-            <div class="data-search" id="geneAliasesSearchContainer" style="display: none;">
-                <input type="text" id="geneAliasesSearchInput" placeholder="Enter Gene ID (e.g., EIN_059730)" />
-                <button id="geneAliasesSearchBtn">Search</button>
-            </div>
-            <!-- Full GFF Search -->
-            <div class="data-search" id="fullGFFSearchContainer" style="display: none;">
-                <input type="text" id="fullGFFSearchInput" placeholder="Enter Sequence ID (e.g., KB207260)" />
-                <button id="fullGFFSearchBtn">Search</button>
-            </div>
-            <!-- ORF Search -->
-            <div class="data-search" id="orfSearchContainer" style="display: none;">
-                <input type="text" id="orfSearchInput" placeholder="Enter Sequence ID (e.g., KB206125)" />
-                <button id="orfSearchBtn">Search</button>
-            </div>
+            <!-- Homepage gallery removed from header — inserted below the Entamoeba Overview to avoid nav placement -->
+            <!-- Per-dataset search bars removed to simplify header (global search remains) -->
             <nav class="top-nav">
                 <ul>
-                    <li><a href="#">Tools</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Tools</a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-section">
+                                <a href="tools/blast.html">BLAST</a>
+                                <a href="tools/hmm.html">HMM search</a>
+                            </div>
+                        </div>
+                    </li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle">Data</a>
                         <div class="dropdown-menu">
                             <div class="dropdown-section">
                                 <h4>Entamoeba Histolytica</h4>
-                                <a href="Data/Entamoeba%20Histolytica/annotated_transcripts.json" download="annotated_transcripts.json">Annotated Transcripts</a>
-                                <a href="Data/Entamoeba%20Histolytica/annotated_protein.json" download="annotated_protein.json">Annotated Proteins</a>
-                                <a href="Data/Entamoeba%20Histolytica/gene.json" download="gene.json">Gene Data</a>
-                                <a href="Data/Entamoeba%20Histolytica/genome.json" download="genome.json">Genome Data</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedTranscripts.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedTranscripts.json">Annotated Transcripts</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedProteins.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedProteins.json">Annotated Proteins</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedCDSs.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedCDSs.json">Annotated CDSs</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_Genome.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_Genome.json">Genome Data</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_CodonUsage.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_CodonUsage.json">Codon Usage</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_Orf50.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_Orf50.json">ORF50</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_GeneAliases.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_GeneAliases.json">Gene Aliases</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_Curated_GO.gaf.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_Curated_GO.gaf.json">Curated GO (GAF)</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_GO.gaf.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_GO.gaf.json">GO GAF</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Nucleotide.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Nucleotide.json">NCBI Linkouts (Nuc)</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Protein.json" download="AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Protein.json">NCBI Linkouts (Prot)</a>
+                                <a href="Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS.json" download="AmoebaDB-68_EhistolyticaHM1IMSS.json">Full GFF</a>
                             </div>
                             <div class="dropdown-section">
                                 <h4>Entamoeba Invadens</h4>
@@ -82,8 +95,8 @@
                             </div>
                         </div>
                     </li>
-                    <li><a href="#">About</a></li>
-                    <li><a href="#" id="adminLoginBtn">Admin Login</a></li>
+                    <li><a href="#" id="about-link">About</a></li>
+                    <li><a href="/admin" id="adminLoginBtn">Admin Login</a></li>
                 </ul>
             </nav>
         </div>
@@ -105,10 +118,10 @@
                         <div class="sidebar-item sublist-toggle" data-target="histolytica-sublist">
                             <span class="triangle">▶</span> Entamoeba Histolytica
                         </div>
-                        <ul id="histolytica-sublist" class="hidden">
+                            <ul id="histolytica-sublist" class="hidden">
                             <li>
                                 <div class="sidebar-item"><a href="#" class="organism-link"
-                                        data-organism="Entamoeba Histolytica Transcriptomics">Transcriptomics</a></div>
+                                        data-organism="Entamoeba Histolytica transcripts">Transcripts</a></div>
                             </li>
                             <li>
                                 <div class="sidebar-item"><a href="#" class="organism-link"
@@ -117,12 +130,32 @@
                             </li>
                             <li>
                                 <div class="sidebar-item"><a href="#" class="organism-link"
-                                        data-organism="Entamoeba Histolytica Gene">Gene</a>
+                                        data-organism="Entamoeba Histolytica CDS">CDS</a>
                                 </div>
                             </li>
                             <li>
                                 <div class="sidebar-item"><a href="#" class="organism-link"
                                         data-organism="Entamoeba Histolytica Genome">Genome</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="sidebar-item"><a href="#" class="organism-link"
+                                        data-organism="Entamoeba Histolytica Codon usage">Codon usage</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="sidebar-item"><a href="#" class="organism-link"
+                                        data-organism="Entamoeba Histolytica Gene aliases">Gene aliases</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="sidebar-item"><a href="#" class="organism-link"
+                                        data-organism="Entamoeba Histolytica ORF">ORF</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="sidebar-item"><a href="#" class="organism-link"
+                                        data-organism="Entamoeba Histolytica Full GFF">Full GFF</a>
                                 </div>
                             </li>
                         </ul>
@@ -134,7 +167,7 @@
                         <ul id="invadens-sublist" class="hidden">
                             <li>
                                 <div class="sidebar-item"><a href="#" class="organism-link"
-                                        data-organism="Entamoeba Invadens Transcriptomics">Transcriptomics</a></div>
+                                        data-organism="Entamoeba Invadens transcripts">Transcripts</a></div>
                             </li>
                             <li>
                                 <div class="sidebar-item"><a href="#" class="organism-link"
@@ -178,16 +211,95 @@
             </div>
             <div id="resultsContainer">
                 <div class="info-card">
-                    <h4>Information 1</h4>
-                    <p>Details about Information 1 will be displayed here.</p>
+                    <h4>Entamoeba Overview</h4>
+                    <table class="info-table" role="presentation">
+                        <tr>
+                            <td class="left-col">
+                                <h5>Entamoeba Basics</h5>
+                                <div class="basic-section">
+                                    <p class="muted"><strong>1) Basic information</strong></p>
+                                    <ul class="basic-list">
+                                        <li><a href="#" id="basic-info-link">Basic information</a></li>
+                                    </ul>
+
+                                    <p class="muted" style="margin-top:12px;"><strong>2) Images</strong></p>
+                                    <ul class="basic-list">
+                                        <li><a href="#" id="images-link">Images</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td class="right-col">
+                                    <h5 class="lab-heading">Laboratory Methods</h5>
+                                    <div class="lab-section">
+                                        <ul class="lab-list">
+                                            <li>
+                                                <a href="#" class="lab-link" data-target="diag-list">1. Diagnosis of Entamoeba histolytica</a>
+                                                <ul id="diag-list" class="lab-sublinks">
+                                                    <!-- <li><a href="#">Molecular-based diagnosis of Entamoeba histolytica infection</a></li> -->
+                                                    <!-- <li><a href="#">Some Faecal Diagnosis Methods</a></li> -->
+                                                    <li><a href="#" data-content="species-desc">Species description</a></li>
+                                                    <li><a href="#">Immunodiagnosis</a></li>
+                                                    <li><a href="#" data-content="antigen-desc">Antigen detection</a></li>
+                                                    <li><a href="#">Isoenzyme analysis</a></li>
+                                                    <li><a href="#" data-content="microscopy-desc">Diagnosis by microscopy</a></li>
+                                                    <li><a href="#" data-content="treatment-desc">Treatment of E. histolytica infection</a></li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <a href="#" class="lab-link" data-target="cult-list">2. Cultivation of Entamoeba</a>
+                                                <ul id="cult-list" class="lab-sublinks">
+                                                    <li><a href="#" data-content="general-considerations">General Considerations</a></li>
+                                                    <li><a href="#" data-content="historical-background">Historical background</a></li>
+                                                    <li><a href="#" data-content="xenic-media">Xenic Culture Media</a></li>
+                                                    <li><a href="#" data-content="axenic-media">Axenic culture media</a></li>
+                                                    <li><a href="#" data-content="establishment-cultures">Establishment of cultures</a></li>
+                                                    <li><a href="#" data-content="maintenance-cultures">Maintenance of cultures</a></li>
+                                                    <li><a href="#" data-content="materials-sources">Materials</a></li>
+                                                    <li><a href="#" data-content="cryopreservation">Cryopreservation</a></li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <a href="#" class="lab-link" data-target="dna-list">3. DNA methods</a>
+                                                <ul id="dna-list" class="lab-sublinks">
+                                                    <li><a href="#" data-content="dna-purification">DNA Purification</a></li>
+                                                    <li><a href="#" data-content="riboprinting">Riboprinting</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="info-card">
-                    <h4>Information 2</h4>
-                    <p>Details about Information 2 will be displayed here.</p>
-                </div>
-                <div class="info-card">
-                    <h4>Information 3</h4>
-                    <p>Details about Information 3 will be displayed here.</p>
+            </div>
+            <!-- Featured Images: placed below Entamoeba Overview -->
+            <div id="homeImageGallery" class="home-gallery">
+                <h3>Featured Images</h3>
+                <div class="gallery-grid">
+                    <figure>
+                        <img src="/Entamoeba_images/Entamoeba_histolytica_trophozoite.png" alt="Entamoeba trophozoite" />
+                        <figcaption>Entamoeba histolytica — trophozoite</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="/Entamoeba_images/ijms-24-11755-g001.png" alt="Figure (publication)" />
+                        <figcaption>Figure (from publication)</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="/Entamoeba_images/kvir_a_2158656_f0001_oc.jpg" alt="Microscopy image" />
+                        <figcaption>Microscopy image</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="/Entamoeba_images/clip_image004-9.jpg" alt="Clip image" />
+                        <figcaption>Clip image</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="/Entamoeba_images/metronidazole.png" alt="Metronidazole" />
+                        <figcaption>Metronidazole (drug)</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="/Entamoeba_images/Paromomycin.png" alt="Paromomycin" />
+                        <figcaption>Paromomycin (drug)</figcaption>
+                    </figure>
                 </div>
             </div>
         </main>
@@ -237,16 +349,20 @@
                 <aside class="admin-sidebar">
                     <div class="admin-menu">
                         <h3>Data Management</h3>
-                        <div class="organism-section">
+                            <div class="organism-section">
                             <h4>Entamoeba Histolytica</h4>
-                            <button class="data-btn" data-organism="histolytica" data-type="transcriptomics">Transcriptomics</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="transcriptomics">Transcripts</button>
                             <button class="data-btn" data-organism="histolytica" data-type="protein">Protein Sequence</button>
-                            <button class="data-btn" data-organism="histolytica" data-type="gene">Gene Data</button>
-                            <button class="data-btn" data-organism="histolytica" data-type="genome">Genome Data</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="cds">CDS</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="genome">Genome</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="codon-usage">Codon usage</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="gene-aliases">Gene aliases</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="orf">ORF</button>
+                            <button class="data-btn" data-organism="histolytica" data-type="full-gff">Full GFF</button>
                         </div>
                         <div class="organism-section">
                             <h4>Entamoeba Invadens</h4>
-                            <button class="data-btn" data-organism="invadens" data-type="transcriptomics">Transcriptomics</button>
+                            <button class="data-btn" data-organism="invadens" data-type="transcriptomics">transcripts</button>
                             <button class="data-btn" data-organism="invadens" data-type="protein">Protein Sequence</button>
                             <button class="data-btn" data-organism="invadens" data-type="cds">CDS Data</button>
                             <button class="data-btn" data-organism="invadens" data-type="genome">Genome Data</button>
@@ -265,11 +381,11 @@
                             <div class="stats-grid">
                                 <div class="stat-card">
                                     <h3>Total Datasets</h3>
-                                    <span id="totalDatasets">11</span>
+                                    <span id="totalDatasets">14</span>
                                 </div>
                                 <div class="stat-card">
                                     <h3>Histolytica Files</h3>
-                                    <span id="histolyticaFiles">4</span>
+                                    <span id="histolyticaFiles">7</span>
                                 </div>
                                 <div class="stat-card">
                                     <h3>Invadens Files</h3>
@@ -284,7 +400,1013 @@
     </div>
 
     <script src="script.js"></script>
-    <script src="admin-main.js"></script>
+    <script>
+        // Lab methods toggles: show/hide sublists when clicking main items
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('.lab-link');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    const el = document.getElementById(targetId);
+                    if (!el) return;
+                    const isOpen = el.style.display === 'block';
+                    // close all sublists
+                    document.querySelectorAll('.lab-sublinks').forEach(s => s.style.display = 'none');
+                    // toggle this one
+                    el.style.display = isOpen ? 'none' : 'block';
+                    // smooth scroll into view for mobile
+                    if (!isOpen) this.scrollIntoView({behavior: 'smooth', block: 'center'});
+                });
+            });
+            // Hide all sublists by default
+            document.querySelectorAll('.lab-sublinks').forEach(s => s.style.display = 'none');
+
+            // Helper to wire modal-inserted content: back links and nested data-content anchors
+            function wireModalInner(modalInner) {
+                const modal = document.getElementById('contentModal');
+                // back links close the modal
+                modalInner.querySelectorAll('.back-link').forEach(bl => {
+                    bl.addEventListener('click', function(evt) {
+                        evt.preventDefault();
+                        modal.style.display = 'none';
+                    });
+                });
+
+                // nested links that reference other hidden content blocks via data-content
+                modalInner.querySelectorAll('a[data-content]').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const contentId = this.getAttribute('data-content');
+                        const source = document.getElementById(contentId);
+                        if (!source) return;
+                        // replace modal content with the referenced source and re-wire
+                        modalInner.innerHTML = source.innerHTML;
+                        wireModalInner(modalInner);
+                        modal.style.display = 'flex';
+                        modalInner.focus();
+                    });
+                });
+            }
+
+            // Wire species/subpage links that have data-content -> show modal with content
+            document.querySelectorAll('.lab-sublinks a[data-content]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const contentId = this.getAttribute('data-content');
+                    const source = document.getElementById(contentId);
+                    if (!source) return;
+                    const modal = document.getElementById('contentModal');
+                    const modalInner = document.getElementById('modalContent');
+                    modalInner.innerHTML = source.innerHTML;
+                    wireModalInner(modalInner);
+                    modal.style.display = 'flex';
+                    // focus for accessibility
+                    modalInner.focus();
+                });
+            });
+
+            // Wire the standalone Basic Information and Images links to open modal content
+            const basicInfoLink = document.getElementById('basic-info-link');
+            const imagesLink = document.getElementById('images-link');
+            if (basicInfoLink) {
+                basicInfoLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const source = document.getElementById('basic-info-content');
+                    if (!source) return;
+                    const modal = document.getElementById('contentModal');
+                    const modalInner = document.getElementById('modalContent');
+                    modalInner.innerHTML = source.innerHTML;
+                    // wire nested links/back links inside inserted content
+                    wireModalInner(modalInner);
+                    modal.style.display = 'flex';
+                    modalInner.focus();
+                });
+            }
+            if (imagesLink) {
+                imagesLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const source = document.getElementById('images-content');
+                    if (!source) return;
+                    const modal = document.getElementById('contentModal');
+                    const modalInner = document.getElementById('modalContent');
+                    modalInner.innerHTML = source.innerHTML;
+                    // wire nested links/back links inside inserted content
+                    wireModalInner(modalInner);
+                    modal.style.display = 'flex';
+                    modalInner.focus();
+                });
+            }
+
+            // Wire the About nav link to open the About modal content
+            const aboutLink = document.getElementById('about-link');
+            if (aboutLink) {
+                aboutLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const source = document.getElementById('about-content');
+                    if (!source) return;
+                    const modal = document.getElementById('contentModal');
+                    const modalInner = document.getElementById('modalContent');
+                    modalInner.innerHTML = source.innerHTML;
+                    // wire nested links/back links inside inserted content
+                    wireModalInner(modalInner);
+                    modal.style.display = 'flex';
+                    modalInner.focus();
+                });
+            }
+
+            // Modal close handlers (click outside or close button)
+            const modalEl = document.getElementById('contentModal');
+            if (modalEl) {
+                modalEl.addEventListener('click', function(e) {
+                    if (e.target === modalEl || e.target.classList.contains('modal-close')) {
+                        modalEl.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Hidden content sources for modal pages -->
+    <div id="species-desc" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Entamoeba histolytica Schaudinn, 1903 (Emended Walker, 1911)</h2>
+            <hr />
+            <h3>Morphological Characters in vivo:</h3>
+            <p>Trophozoites ranging in size from 20 to 40 &micro;m in diameter. Locomotion rapid, gliding, by means of a single well defined pseudopodium, often extended explosively, without conspicuous differentiation between ecto- and endoplasm. Cytoplasm with a single nucleus, rarely up to four; often with ingested red blood cells, sometimes with leukocytes, or bacteria; rich in glycogen; with ribosomes arranged in helices which aggregate to form characteristically shaped elongate bars with rounded ends (=chromatoid bodies). Without classical mitochondria, rough endoplasmic reticulum, or golgi apparatus. Nucleus vesicular, spherical, measuring 4 to 7 &micro;m in diameter, consisting of a delicate achromatic membrane lined usually by a single layer of small chromatin granules, uniform in size, in contact or very close to each other. With a small spherical karyosome (0.5 &micro;m in diameter), often centrally located, surrounded by an achromatic capsule-like structure.</p>
+
+            <p>Cysts spherical, measuring 10 to 16 &micro;m in diameter; with four nuclei when mature, rarely up to eight; with glycogen in a distinct vacuole in the immature cyst, becoming more diffuse as the cyst matures; often with chromatoid bodies in the immature cyst, disappearing as the cyst matures. Nuclei with morphology similar to those of trophozoites.</p>
+
+            <h3>Geographic Distribution:</h3>
+            <p>Worldwide</p>
+
+            <h3>Hosts:</h3>
+            <p>Humans, several nonhuman primates, cats, dogs and rats are well documented hosts. Reports of infection in other mammals must be viewed with caution unless evidence of tissue invasion has been provided, and/or the parasite has been isolated and subjected to isoenzyme or other discriminatory analysis.</p>
+
+            <h3>Phylogeny:</h3>
+            <p>The relationships of <em>E. histolytica</em> to other species of <em>Entamoeba</em> and to other eukaryotes are shown <a href="#">here</a>.</p>
+
+            <p style="margin-top:20px;"><em>This description is taken from:</em><br/>Diamond, L.S. &amp; Clark, C.G. (1993) A redescription of <em>Entamoeba histolytica</em> Schaudinn, 1903 (Emended Walker, 1911) separating it from <em>Entamoeba dispar</em> Brumpt, 1925. <strong>J. Euk. Microbiol.</strong> 40: 340-344.</p>
+
+            <div class="modal-footer">
+                <!-- remove `modal-close` class so this link is not absolutely positioned by the close-button rule -->
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- About content (from provided attachments) -->
+    <div id="about-content" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">What is VEuPathDB?</h2>
+            <hr />
+            <p>At its core, <strong>VEuPathDB</strong> (which stands for <em>Eukaryotic Pathogen, Vector, and Host Informatics Resource</em>) is an integrated online database. Think of it as a one-stop-shop for scientists to access, mine, and visualize massive amounts of "omics" data (genomic, transcriptomic, proteomic, etc.) related to infectious diseases.</p>
+
+            <p>It's not just a passive library; it's an active workbench. Its main purpose is to allow researchers to ask complex biological questions and form new hypotheses by exploring and connecting different types of data.</p>
+
+            <p>This resource is funded by the U.S. National Institutes of Health (NIH) — specifically the National Institute of Allergy and Infectious Diseases (NIAID) — as well as the Wellcome Trust, making it a stable, long-term, and authoritative source.</p>
+
+            <h3 style="margin-top:18px;">What Kind of Data Does It Contain?</h3>
+            <p>VEuPathDB integrates an enormous variety of data types, all processed through standardized analysis pipelines so they can be compared. Examples include:</p>
+            <ul>
+                <li><strong>Genomics:</strong> Complete genome sequences, gene annotations, gene models, and comparative genomics (like orthologs, or similar genes across different species).</li>
+                <li><strong>Transcriptomics (Gene Expression):</strong> A massive collection of RNA-Seq and microarray data, showing which genes are turned on or off under different conditions (e.g., during different life cycle stages or after drug treatment). This now includes single-cell RNA-Seq data.</li>
+                <li><strong>Proteomics:</strong> Experimental evidence of protein expression (from mass spectrometry), post-translational modifications, and predicted protein structures (including AlphaFold predictions).</li>
+                <li><strong>Population Genetics:</strong> Data on genetic variation (SNPs, indels) from different strains or clinical isolates, which is vital for tracking drug resistance and parasite evolution.</li>
+                <li><strong>Metabolic Pathways:</strong> Curated pathways showing the metabolic capabilities of organisms.</li>
+                <li><strong>Epidemiological Data:</strong> Geographic locations of samples, insecticide resistance monitoring in vectors, and clinical study results.</li>
+            </ul>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to top</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="basic-info-content" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Basic Information on <em>Entamoeba</em></h2>
+            <hr />
+            <p>Parasites assigned to the genus <em>Entamoeba</em> are single celled eukaryotes and parasites all classes of vertebrate and many other unicellular eukaryotes also. All species have a simple life cycle that usually consists of an infective cyst stage and a multiplying trophozoite stage. Transmission of the infection occurs via ingestion of cysts in faecally contaminated food or water. Humans can be host to at least six species of <em>Entamoeba</em> in addition to several amoebae belonging to other genera. However, only one species of <em>Entamoeba</em> infecting humans is known to cause disease. <em>Entamoeba histolytica</em> is the third leading cause of morbidity and mortality due to parasitic disease in humans (after malaria and schistosomiasis) and is estimated to be responsible for between 50,000 and 100,000 deaths every year. Infection can lead to amoebic dysentery, resulting from trophozoites invading the intestinal wall, and amoebic liver abscess and other extraintestinal lesions, resulting from spread of trophozoites from the intestine via the bloodstream. Differentiation among species of <em>Entamoeba</em> is clearly important for accurate diagnosis of individuals at risk and to prevent unnecessary or inappropriate chemotherapy.</p>
+
+            <p>There are very few morphological criteria on which <em>Entamoeba</em> species identification can be based. Classically, descriptions of new <em>Entamoeba</em> species have relied on :</p>
+
+            <ol>
+                <li>The identity of the host</li>
+                <li>The size of the trophozoite and cyst</li>
+                <li>Nuclear morphology</li>
+                <li>The number of nuclei in the mature cyst</li>
+                <li>The morphology of what are known as chromatoid bodies that appear during encystation</li>
+            </ol>
+
+            <p>Traditionally, species are grouped into those that produce cysts with one, four or eight nuclei. A few species are known not to produce cysts.</p>
+
+            <p>In many publications <em>Entamoeba histolytica</em> is cited as infecting one tenth of the world population, or 500 million people. In recent years a new understanding of this organism has lead to the recognition that there are in fact two species within what has previously been known as <em>E. histolytica</em>. Of these two organisms, <em>E. histolytica</em> is the cause of all invasive disease while the other, <em>E. dispar</em>, is not capable of invading tissue. These organisms were previously known as 'pathogenic <em>E. histolytica</em>' and 'nonpathogenic <em>E. histolytica</em>', respectively, and these names will be encountered in the literature. The relative prevalence of these two species is not yet fully known but it is clear that in most parts of the world <em>E. dispar</em> is easily the more common of the two. The two species are morphologically identical and differentiating between the two relies on relatively sophisticated methods: isoenzyme, antigen and/or DNA analyses. Kits for the differentiation of <em>E. histolytica</em> and <em>E. dispar</em> directly from faecal samples are available commercially from only one source but others will be available soon.</p>
+
+            <p>On the 28th and 29th of January 1997 a Consultation of Experts on Amoebiasis sponsored by WHO, PAHO and UNESCO took place in Mexico City the purpose of which was to make recommendations based on the recent evidence for the existence of two species within what had been called <em>Entamoeba histolytica</em>. The resulting document, which was unanimously approved by the <a href="#">participants</a>, was published in a Weekly Epidemiological Report of the WHO. The text of this report can be found <a href="#" data-content="amoebiasis-report">here</a>.</p>
+
+            <p>Since that time it has also been found that a third morphologically identical species is more common in humans than had been thought. Several groups have reported high local prevalence of <em>E. moshkovskii</em>, previously thought to be primarily a free-living species and rare in humans. How much this organism contributes to misdiagnosis of <em>E. histolytica</em> infection is still unclear.</p>
+
+            <p>What is very clear is that we lack recent data on the prevalence of these species. The number of 500 million infections is probably over 90% <em>E. dispar</em>/<em>E. moshkovskii</em> as it has been estimated that only about 36 and 50 million cases of disease occur annually, of which about 70,000 die. Only one class of drugs is used to treat invasive disease, the 5-nitroimidazoles of which metronidazole (Flagyl) is the most widely available. To date we have been fortunate in that no evidence of resistance to this drug has emerged. However we may be one drug resistance mutation away from a catastrophe.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to the Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Images gallery content (pulled from Entamoeba_images folder) -->
+    <div id="images-content" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Entamoeba images</h2>
+            <hr />
+            <div class="image-gallery">
+                <figure>
+                    <img src="/Entamoeba_images/Entamoeba_histolytica_trophozoite.png" alt="Entamoeba trophozoite" />
+                    <figcaption>Entamoeba histolytica — trophozoite</figcaption>
+                </figure>
+                <figure>
+                    <img src="/Entamoeba_images/ijms-24-11755-g001.png" alt="Entamoeba image 2" />
+                    <figcaption>Figure (from publication)</figcaption>
+                </figure>
+                <figure>
+                    <img src="/Entamoeba_images/kvir_a_2158656_f0001_oc.jpg" alt="Entamoeba microscopy" />
+                    <figcaption>Microscopy image</figcaption>
+                </figure>
+            </div>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Entamoeba Overview</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- WHO Expert Consultation Report (pages from attachments) -->
+    <div id="amoebiasis-report" style="display:none;">
+        <div class="species-page">
+            <h1 style="text-align:center;">Report of the Expert Consultation on Amoebiasis</h1>
+            <p style="text-align:center;"><em>(Excerpted with permission from the WHO WEEKLY EPIDEMIOLOGICAL RECORD, No. 14, 4 APRIL 1997)</em></p>
+            <hr />
+            <h2>Amoebiasis</h2>
+            <p>A WHO/Pan American Health Organization/UNESCO Expert Consultation on Amoebiasis was held on 28- 29 January 1997 in Mexico City, Mexico. Below is presented a summary of the major conclusions, recommendations and research needs identified by the participants.</p>
+
+            <h3>Introduction</h3>
+            <p>Amoebiasis is currently defined as infection with the protozoan parasite <em>Entamoeba histolytica</em>. Normally resident in the large bowel, amoebae occasionally penetrate the intestinal mucosa and may disseminate to other organs. The factors that trigger invasion are unknown. <em>E. histolytica</em> is responsible for up to 100 000 deaths per annum, placing it second only to malaria in mortality due to protozoan parasites. It has long been known that many people apparently infected with <em>E. histolytica</em> never develop symptoms and spontaneously clear the infection. This was interpreted by many workers as indicating a parasite of variable virulence. However, in 1925 Emile Brumpt suggested an alternative explanation, that there were in fact 2 species, one capable of causing invasive disease and one that never causes disease, which he called <em>E. dispar</em>. Brumpt's hypothesis was dismissed by other workers. In the 1970s, data started to accumulate that gave support to Brumpt's hypothesis of the existence of 2 distinct organisms within what was being called <em>E. histolytica</em>. Biochemical, immunological, and genetic data continued to accumulate and in 1993 a formal redescription of <em>E. histolytica</em> was published, separating it from <em>E. dispar</em>.</p>
+
+            <h3>Conclusions</h3>
+            <ul>
+                <li><em>E. histolytica</em> was previously defined as a unicellular eukaryote with the following morphology: trophozoites with a single nucleus, 20-40 &micro;m in diameter; cysts are 10-16 &micro;m in diameter, with 4 nuclei when mature, 1 nucleus when immature with glycogen in a vacuole and often with chromatoid bodies. The nucleus is vesicular, spherical, with a membrane lined with small chromatin granules and with a small central spherical karyosome.</li>
+                <li>Biochemical, immunological and genetic data now indicate that there are 2 species with the above morphological characteristics - <em>E. histolytica</em> and <em>E. dispar</em> - previously known as pathogenic and non-pathogenic <em>E. histolytica</em>, respectively. Only <em>E. histolytica</em> is capable of causing invasive disease.</li>
+                <li>When diagnosis is made by light microscopy, the cysts of the 2 species (10-16 &micro;m in diameter) are indistinguishable and should be reported as <em>E. histolytica</em>/<em>E. dispar</em>.</li>
+                <li>Trophozoites with ingested red blood cells in fresh stool or other specimens and trophozoites in tissue biopsies are both strongly correlated with the presence of <em>E. histolytica</em> and invasive disease.</li>
+            </ul>
+
+            <h3>Recommendations</h3>
+            <ul>
+                <li>Optimally, <em>E. histolytica</em> should be specifically identified and, if present, treated.</li>
+                <li>If only <em>E. dispar</em> is identified, treatment is unnecessary. If the infected person has gastrointestinal symptoms, other causes should be sought.</li>
+                <li>Species identification based on culture can never exclude the presence of <em>E. histolytica</em>. (Note)</li>
+                <li>In asymptomatic individuals, treatment is not appropriate when <em>E. histolytica</em>/<em>E. dispar</em> has been detected but <em>E. histolytica</em> has not been specifically identified, unless there are reasons to suspect infection with <em>E. histolytica</em>, including high specific antibody titres, a history of close contact with a case of invasive amoebiasis, or an outbreak of amoebiasis.</li>
+            </ul>
+
+            <h3>Research needs</h3>
+            <p>During the last few years with very limited funding considerable advances have been made in the understanding of <em>E. histolytica</em> infection. The opportunity now exists to exploit this knowledge to make a major impact on the morbidity and mortality due to <em>E. histolytica</em>. Significantly increased resources should be devoted to research on amoebiasis; the priority areas that should be supported are:</p>
+            <ul>
+                <li>Improved methods for the specific diagnosis of <em>E. histolytica</em> infection using technologies appropriate for developing countries are urgently needed.</li>
+                <li>Accurate prevalence data for <em>E. histolytica</em> are not available and obtaining them should be a high priority.</li>
+                <li>Molecular epidemiological studies are now possible and should be vigorously pursued to determine whether some subgroups of <em>E. histolytica</em> are more likely to cause invasive disease than others.</li>
+                <li>Data on the prevalence of asymptomatic carriers of <em>E. histolytica</em>, their likelihood of progression to invasive disease, and the frequency of transmission to na&iuml;ve individuals are inadequate. More information is crucial for planning rational control strategies and must be obtained.</li>
+            </ul>
+
+            <p>Additional information is available upon request addressed to the Schistosomiasis and Intestinal Parasites Unit, Division of Control of Tropical Diseases (CTD/SIP), WHO, 1211 Geneva 27, Switzerland.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Return to the Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="antigen-desc" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Entamoeba histolytica Antigen Detection</h2>
+            <hr />
+            <p><strong>The "Entamoeba Test"</strong> (designed to detect but not differentiate the antigens of <em>E. histolytica</em> and <em>E. dispar</em> in stool specimens) and the <strong>"Entamoeba histolytica Test"</strong> (designed to detect specifically <em>E. histolytica</em> in stool) are available from the manufacturers (<a href="#">TechLab, Inc.</a>, Blacksburg, VA).</p>
+
+            <p>Briefly, the method is as follows: Assay microtiter wells are incubated with 0.1 ml of diluted specimen (stool diluted 1:1 in kit diluent) and 1 drop of mAb-enzyme conjugate for 2 hours at room temperature. The contents of the well strips are then shaken out, and washed 4 times in the wash solution. After washing, residual liquid is removed by striking the strip once against a paper towel, substrate solutions are added, and the strip incubated at room temperature for 10 min. Intensifier is then added and after an additional 10 min incubation the well strips are read in a microtiter plate reader (eg. Titertek Multiskan, Flow Laboratories, VA) at 450 nm. A positive result is defined as an optical density reading &gt; 0.05 after subtraction of the negative control optical density. Sensitivity is calculated as true positive (TP)/TP + false negative (FN) and specificity as true negative (TN)/TN + false positive (FP).</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to the Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="general-considerations" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">General Considerations</h2>
+            <hr />
+            <p>Three types of culture system will be discussed in this manual for the cultivation of <em>Entamoeba</em> species: xenic cultivation, where the parasite is grown in the presence of an undefined flora; monoxenic, where the parasite is grown in the presence of a single species of associate; and axenic, where the parasite is grown in the absence of any other metabolizing cells. (The term polyxenic is sometimes erroneously used as a synonym for xenic; however polyxenic should refer only to cultures where the identities of all the species present are known (<sup>14</sup>)) These parasitic protista are all isolated from sources rich in bacteria and fungi. Controlling or eliminating the latters' growth is crucial to success in cultivating the parasites of interest. This is true even in xenic culture, where a balance between the needs of the bacterial flora and the eukaryote is important.</p>
+
+            <p>Unlike <em>Trichomonas vaginalis</em> and <em>Giardia intestinalis</em> (also called <em>G. lamblia</em> and <em>G. duodenalis</em> by some authors) which can readily be established directly into axenic cultures, <em>Entamoeba histolytica</em> has never been grown axenically without first being established in culture with other organisms and usually with a complex undefined bacterial flora. Axenization of <em>E. histolytica</em> is a laborious and lengthy process where xenic cultures of the organism are first adapted to monoxenic growth, usually with a kinetoplastid flagellate as an associate, before weaning them from a phagocytotic lifestyle to one where the nutrients are obtained largely by pinocytosis (<sup>9</sup>). The whole process often takes months.</p>
+
+            <p>One constant problem facing those who rely on axenic cultures of these organisms is their fastidiousness. Lot to lot variations in several components of the axenic culture media in particular can have profound effects on the ability of a medium to support growth of the organisms; some lots may even be toxic. Trypticase (Casein Digest Peptone), yeast extract and serum are the medium components most commonly affected, but the quality of the distilled water and even the type of glass used in making the culture tubes (disposable borosilicate glass should be used) can cause problems (<sup>7</sup>). For this reason we highly recommend that those wishing to undertake axenic cultivation of these organisms test the ability of each new lot of reagent to support growth before starting to use it.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="historical-background" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Historical background</h2>
+            <hr />
+            <p><em>Entamoeba histolytica</em> was first established in culture by Boeck and Drbohlav in 1925 in a diphasic egg slant medium they had developed for isolation of intestinal flagellates (<sup>2</sup>). A modification of this medium (LE) is still in use today (see below). Their success refuted the Promethean view of <em>E. histolytica</em> as an obligate tissue parasite. Dobell (<sup>13</sup>) introduced the use of rice starch as a carbohydrate source, and it remains a component of all media for xenic cultivation to this day. Soluble sugars, were they to be used, would be metabolized too rapidly by the bacteria and would not be available to the amebae. Several diphasic media were developed subsequently with serum, agar or egg extracts in the slants. Monophasic media that have been developed include the egg-yolk infusion medium of Balamuth (<sup>1</sup>) and TYSGM-9 of Diamond (<sup>8</sup>). Currently the most widely used media for xenic cultivation of <em>E. histolytica</em> are the diphasic LE and Robinson's (<sup>18</sup>) media and the monophasic TYSGM-9. These three media are detailed below. Additional recipes are given in Diamond's review (<sup>7</sup>).</p>
+
+            <p>Monoxenic cultivation of <em>E. histolytica</em> was first accomplished by Cleveland and Sanders (<sup>4</sup>) in a diphasic medium with a single species of bacterium, and the monobacterial Modified Shaffer-Frye medium (MS-F) was widely used at one time (<sup>17</sup>). Monoxenic cultivation is of limited use today except as a transitional stage between xenic and axenic cultures. <em>Crithidia fasciculata</em> or <em>Trypanosoma cruzi</em> are the associates of choice for monoxenic cultivation (<sup>6, 9</sup>). For media used in monoxenic cultivation, see Diamond's review (<sup>7</sup>).</p>
+
+            <p>Axenic cultivation of <em>E. histolytica</em> was first accomplished by Diamond in 1961 (<sup>5</sup>). The medium used was complex - a diphasic serum-enriched nutrient agar slant overlayed with a broth supplemented with chick embryo extract and vitamins. It was not until Diamond introduced the monophasic medium TP-S-1 in 1968 (<sup>9</sup>) that axenic cultures of <em>E. histolytica</em> started to be widely used. TP-S-1 was superseded by TYI-S-33 in 1978 (<sup>12</sup>) and this is currently the most widely used medium for axenic cultivation of <em>E. histolytica</em>. Diamond et al have recently described YI-S as an alternative to TYI-S-33 (<sup>10</sup>). These latter two media are described below. A partially defined medium is also available (<sup>11</sup>) but is not further considered here. Methods for obtaining cloned colonies in agar have also been published (<sup>15, 16</sup>).</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="xenic-media" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Media for Xenic Cultivation</h2>
+            <hr />
+            <p>Purified rice starch is important for all these media. To prepare (<sup>7</sup>), place 500 mg of powdered rice starch into each of several 16x125mm culture tubes and heat at 150 &deg; C, with loose caps, in a dry oven for 2.5 hours with the starch distributed along the length of the horizontal tubes. (Autoclaving is unacceptable as the starch will swell with the moisture.) After cooling, tighten the caps and store at room temperature. To prepare for use, add 9.5 ml of sterile distilled water or phosphate buffered saline (PBS) to one tube and vortex to resuspend. Distribute 1 ml of the resuspended starch to each of 10 tubes containing 9 ml of sterile water or PBS and refrigerate. The final concentration of diluted rice starch is 5 mg/ml. Before use, resuspend the rice by vortexing or vigorous shaking and pipet the desired volume into culture tubes with medium making sure that the stock rice stays in suspension. Different isolates require varying amounts of rice starch but 0.2 ml (1 mg) is often a suitable amount to add.</p>
+
+            <h3>Diphasic Media:</h3>
+
+            <p><strong>Locke-egg (LE) medium</strong> (NIH modification of Boeck and Drbohlav's medium (<sup>21</sup>))</p>
+
+            <p>Prepare Locke's solution: Dissolve:</p>
+            <ul>
+                <li>8.0 g Sodium Chloride</li>
+                <li>0.2 g Calcium Chloride</li>
+                <li>0.2 g Potassium Chloride</li>
+                <li>0.01 g Magnesium Chloride</li>
+                <li>2.0 g Sodium Phosphate, dibasic</li>
+                <li>0.4 g Sodium Bicarbonate</li>
+                <li>0.3 g Potassium Phosphate, monobasic</li>
+            </ul>
+
+            <p>Autoclave 15 minutes, 121&deg; C, 15 lbs. pressure. Cool to room temperature and remove any precipitate by filtration (Whatman #1 paper). Re-autoclave to sterilize.</p>
+
+            <p>Prepare egg slant:</p>
+
+            <p>Surface sterilize fresh hens eggs by flaming in 70% ethanol and break into a graduated cylinder. Add 12.5 ml Locke's solution per 45 ml of egg. Emulsify in a Waring-type blender and filter through gauze into a flask. Place under vacuum to draw out all air bubbles. Add 5 ml amounts of the emulsified egg to standard 16x125 mm culture tubes and autoclave at 100&deg; C for 10 minutes with the tubes at an angle that produces a 12-15 mm (ca. 0.5 inch) butt. The resulting egg slants should be free of bubbles. Cool to room temperature and overlay slants with 6 ml Locke's solution and autoclave 15 minutes, 121&deg; C, 15 lbs. pressure. After cooling to room temperature tighten the caps and refrigerate for up to 6 months.</p>
+
+            <p><strong>Robinson's medium</strong> (<sup>18</sup>)</p>
+
+            <p>This is a complex medium that has nevertheless found widespread use for the isolation of enteric amebae.</p>
+
+            <p>Prepare the following stock solutions:</p>
+            <ol>
+                <li>0.5% Erythromycin in distilled water and filter sterilize. Refrigerate.</li>
+                <li>20% Bactopeptone in distilled water. Autoclave and refrigerate.</li>
+                <li>10X Phthalate solution stock:
+                    <ul>
+                        <li>102 g Potassium Hydrogen Phthalate</li>
+                        <li>50 ml of 40% Sodium Hydroxide</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <p>Bring to 1 liter at pH 6.3. Autoclave 15 minutes, 121&deg; C, 15 lbs. pressure and store at room temperature.</p>
+
+            <p>Dilute 1:10 with sterile water before use. A stock of Phthalate/Bactopeptone can be made by adding 1.25 ml of 20% Bactopeptone per 100 ml 1X Phthalate solution. Store refrigerated.</p>
+
+            <p>Prepare 10X R Medium stock: Dissolve in distilled water:</p>
+            <ul>
+                <li>25.0 g Sodium Chloride</li>
+                <li>10.0 g Citric Acid</li>
+                <li>2.5 g Potassium Phosphate, monobasic</li>
+                <li>5.0 g Ammonium Sulfate</li>
+                <li>0.25 g Magnesium Sulfate.7H2O</li>
+                <li>20 ml 85% Lactic Acid solution</li>
+            </ul>
+
+            <p>Bring to 500 ml. Dilute stock 1:10 adjusting pH to 7.0 and autoclave 15 minutes, 121&deg; C, 15 lbs. pressure in 20 ml amounts.</p>
+
+            <p>5. BR medium: Inoculate 1X R medium with a standard <em>Escherichia coli</em> strain such as 0111. Incubate at 37&deg; C for 48 hours and store at room temperature (good for several months).</p>
+
+            <p>6. BRS medium: Add an equal volume of heat inactivated bovine serum to BR medium and incubate at 37&deg; C for 24 hours. Store at room temperature (good for several months).</p>
+
+            <p>Prepare agar slants.</p>
+
+            <p>Many people use 1/2 oz. Quorpak bottles but we have also used standard culture tubes with good success. Autoclave a solution of 1.5% Noble Agar in 0.7% Sodium Chloride/distilled water for 15 minutes at 121&deg; C with 15 lbs. pressure. Dispense in 5 ml (tube) or 7 ml (bottle) amounts, re-autoclave and slant until cool and set. For slants in tubes use an angle that produces a 12-15 mm (ca. 0.5 inch) butt. When cool, tighten lids and store at room temperature or refrigerated.</p>
+
+            <p>To one tube slant (bottles proportionately more) add: 3 ml 1X Phthalate/Bactopeptone; 1 ml BRS; 50 &mu;l Erythromycin. This must be done shortly before inoculation.</p>
+
+            <h3>Monophasic:</h3>
+
+            <p><strong>TYSGM-9</strong> (<sup>8</sup>):</p>
+            <p>Dissolve:</p>
+            <ul>
+                <li>2.8 g Potassium Phosphate, dibasic</li>
+                <li>0.4 g Potassium Phosphate, monobasic</li>
+                <li>7.5 g Sodium Chloride</li>
+                <li>2.0 g Casein Digest Peptone</li>
+                <li>1.0 g Yeast Extract</li>
+            </ul>
+
+            <p>Bring to 950 ml with distilled water. Dispense in 95 ml amounts and add 0.2 g bovine gastric mucin to each bottle. Autoclave for 15 minutes at 121&deg; C with 15 lbs. pressure and store refrigerated. Before use, add 0.1 ml of a filter sterilized 5% stock of Tween 80 in distilled water and 5 ml of heat inactivated adult bovine serum. Dispense in 8 ml amounts into 16x125mm culture tubes.</p>
+
+            <p><strong>LYSGM</strong> is a modification of TYSGM-9 that removes the need for Casein Digest Peptone. Derived from LYI-S-2 in the same way that TYSGM-9 is derived from TYI-S-33, LYSGM has the identical recipe and preparation to TYSGM-9, except that Casein Digest Peptone is replaced by 0.5g of Neutralized Liver Digest (Oxoid L027) and the amount of Yeast Extract is increased to 2.5g. I also use 0.1g porcine gastric mucin Type II (M2378 from Sigma) per 100ml bottle and it seems to work equally well.</p>
+
+            <p>Robinson's medium (<sup>18</sup>) can also be used in a monophasic form. Established cultures can be transferred to and subcultured in tubes containing the overlay only (with the volume adjusted appropriately).</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="axenic-media" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Axenic culture media for <em>E. histolytica</em>:</h2>
+            <hr />
+            <p><strong>TYI-S-33</strong> (<sup>12</sup>):</p>
+            <p>Dissolve in this order in 600 ml deionized or glass distilled water:</p>
+            <ul>
+                <li>1.0 g Potassium Phosphate, dibasic</li>
+                <li>0.6 g Potassium Phosphate, monobasic</li>
+                <li>2.0 g Sodium Chloride</li>
+                <li>20.0 g Casein Digest Peptone</li>
+                <li>10.0 g Yeast Extract</li>
+                <li>10.0 g Glucose</li>
+                <li>1.0 g L-Cysteine Hydrochloride</li>
+                <li>0.2 g Ascorbic Acid</li>
+                <li>1.0 ml Ferric Ammonium Citrate, brown form (22.8 mg/ml)</li>
+            </ul>
+            <p>Bring final volume to 880 ml and pH to 6.8 using 1N Sodium Hydroxide solution (ca. 7.5 ml). Dispense in 88 ml amounts into 125 ml glass bottles and autoclave for 15 minutes at 121&deg; C with 15 lbs. pressure. The sterile TYI base can be stored frozen at -20&deg; C for several months.</p>
+
+            <p><strong>Vitamin mix #18</strong> (<sup>11</sup>):</p>
+            <p>An earlier version of this vitamin mixture is also available commercially (Sigma Aldrich).</p>
+            <ol>
+                <li>Prepare the following four solutions then combine.
+                    <ul>
+                        <li>Dissolve 45 mg niacinamide, 4 mg pyridoxal hydrochloride, 23 mg calcium pantothenate, 5 mg thiamine hydrochloride, and 1.2 mg vitamin B12 in a final volume of 25 ml water.</li>
+                        <li>Dissolve 7 mg riboflavin in water using the minimum amount of 0.1N sodium hydroxide, bringing the final volume to 45 ml.</li>
+                        <li>Dissolve 5.5 mg folic acid in water using the minimum amount of 0.1N sodium hydroxide, bringing the final volume to 45 ml.</li>
+                        <li>Dissolve 2 mg D-biotin in water bringing the final volume to 45 ml.</li>
+                    </ul>
+                </li>
+                <li>If the combined solution is cloudy, it indicates that the pH is too high due to too much sodium hydroxide having been used in solutions b and c and the mixture must be discarded.</li>
+                <li>Dissolve 1 mg DL-6-8-thioctic acid (oxidized form) in 5 ml of 95% ethanol. Add 500 mg Tween-80 bringing the volume to 30 ml with water.</li>
+            </ol>
+            <p>Combine solutions 1 and 2, bring the final volume to 200 ml with distilled water and sterilize through a 0.22 &mu;m filter. Store in 100 ml amounts at 4&deg;C for up to 6 months. The solution is light sensitive. The above recipe provides enough vitamin mix #18 to make ten liters of complete TYI-S-33.</p>
+
+            <p>To complete TYI-S-33 medium for use in axenic cultivation add 2.0 ml of vitamin mix #18 and 10-15 ml of heat inactivated adult bovine serum to each 88 ml of TYI broth. Use complete medium within 7 days. Dispense into 16x125 mm borosilicate glass disposable culture tubes. The tubes should be filled to ca 80% capacity (including inoculum). In most cases 13 ml of TYI-S-33 per tube is the correct amount as inocula for axenic <em>E. histolytica</em> are generally small in established cultures. The % serum used varies among isolates. Fetal bovine serum is not acceptable as foetin is toxic to the parasite. Sources of adult bovine serum can be found <a href="#">here</a>.</p>
+
+            <p><strong>YI-S</strong> (<sup>10</sup>):</p>
+            <p>This medium was developed as an alternative to TYI-S-33 due to difficulties in obtaining lots of casein digest peptone that would support adequate growth of <em>E. histolytica</em>. The recipe for YI-S is identical to that of TYI-S-33 except that casein digest peptone is replaced weight for weight by additional yeast extract, making the final concentration of yeast extract 3%. YI-S is not without its own problems as the lot of yeast extract used is crucial to successful cultivation using this medium.</p>
+
+            <p>The development of YI-S had one unexpected benefit. One characteristic of what were once known as 'non-pathogenic <em>E. histolytica</em>' isolates and are now known as <em>E. dispar</em> is that they are refractory to axenization by the classic technique for obtaining axenic <em>E. histolytica</em> cultures. One isolate of <em>E. dispar</em> has now been axenized by a different method, but it will only grow in YI-S, not in TYI-S-33 (<sup>3, 3a</sup>). Whether this is a general characteristic of this species, which is of significant diagnostic importance, remains to be seen.</p>
+
+            <p><strong>LYI-S-2</strong> (<sup>3a</sup>):</p>
+            <p>In the course of developing YI-S, several combinations of Oxoid neutralised liver digest and yeast extract were studied. One of these, designated LYI-S-2 (liver digest, yeast extract, iron, serum), was found to result in growth equal to that in TYI-S-33. Intent on producing a medium with as few biological ingredients as possible, the medium containing only yeast extract, YI-S, was extensively tested and published. No difference in the ability of YI-S and LYI-S-2 to support growth of <em>E. histolytica</em> was observed (unpublished results). After publication of YI-S further testing within our laboratory and by others disclosed the fact that some lots of yeast extract would not support any growth of the ameba while with others growth was very poor. In the case of the latter it was found that substitution of a small amount of liver digest for an equal amount of yeast extract enhanced growth considerably. LYI-S-2 is recommended when a given lot of yeast extract will support some growth, though poorly, of <em>E. histolytica</em>. LYI-S-2 is identical to YI-S except that weight for weight it contains 0.5% neutralized liver digest and only 2.5% yeast extract. It has been tested with yeast extracts from a number of commercial sources. It has been used in the long term cultivation of <em>E. histolytica</em> HM-1:IMSS (over 2 years), several other isolates of <em>E. histolytica</em> and a number of other <em>Entamoeba</em> species (monoxenic and axenic <em>E. dispar</em> SAW760, axenic <em>E. invadens</em> IP-1, <em>E. moshkovskii</em> Laredo and FIC, and <em>E. terrapinae</em> M) with similar yields to the more widely used TYI-S-33 and YI-S.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="microscopy-desc" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Microscopic Diagnosis of <em>Entamoeba histolytica</em></h2>
+            <hr />
+            <p><strong>Bench Aids for the Diagnosis of Intestinal Parasites</strong> published in 1994 by the WHO (ISBN - 92 4 1544767) is a good all around manual for the identification of all intestinal parasites. It includes methods for preserving and staining fresh, PVA and SAF fixed stool samples as well as excellent photographs of stained specimens. However, it must be remembered that <em>E. histolytica</em> and <em>E. dispar</em> cannot be distinguished morphologically. The description provided applies to both of them, except for red blood cell ingestion and tissue invasion.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="establishment-cultures" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Establishing Cultures of <em>Entamoeba</em> in vitro</h2>
+            <hr />
+            <h3>General Considerations:</h3>
+            <p>Usually, the reason for establishing xenic cultures will be for identification of the species of <em>Entamoeba</em> present in the sample, for example by isoenzyme analysis. Several intestinal species of <em>Entamoeba</em> can be found in humans which are sufficiently similar to cause diagnostic confusion and all can grow in the same media. Because <em>E. histolytica</em> is the only species that causes invasive disease, differentiation from the closely related, more common, and morphologically identical species <em>E. dispar</em> in particular is desirable, in order to prevent unnecessary chemoprophylaxis. Until less laborious methods become widely tested and implemented, isoenzyme analysis will remain the standard for separation of these two parasites.</p>
+
+            <p>The most common source of material will be stool samples and this is what is assumed below. In rare instances rectal biopsies or liver abscess aspirates have been the starting point for cultures. In the latter case, since the abscess is sterile, addition of a bacterial flora is necessary before inoculation of amebae into xenic culture. Such material has also been used for the direct establishment of monoxenic cultures. Unless the stool sample is from a patient with dysentery the amebae will be in the encysted form. This allows for several approaches to the establishment of cultures.</p>
+
+            <h3>Elimination of unwanted organisms</h3>
+            <p>One of the banes of xenic cultivation is the likelihood of unwanted organisms outgrowing the desired ameba. The most frequent source of this problem is <em>Blastocystis hominis</em> which may be the most common parasitic infection of humans. This organism is often missed on stool examination but grows luxuriantly in all the media used to cultivate xenic <em>Entamoeba</em>. Some authors control the growth of <em>B. hominis</em> with acriflavin but this also has an adverse effect on the bacterial flora and, directly or indirectly, on the ameba of interest. We have successfully used two methods to eliminate <em>B. hominis</em> from <em>Entamoeba</em> cultures.</p>
+
+            <p>The first method was described by Dobell and Laidlaw in 1926. In this method, cysts are treated with 0.1N hydrochloric acid at room temperature for 10 minutes, washed thoroughly with distilled water, and re-inoculated into culture medium to which a suitable bacterial flora has been added. The acid kills the bacteria, any fungi, <em>B. hominis</em>, intestinal trichomonads, and any non-encysted amebae while leaving the cysts intact and viable. We have found that it is not necessary in most cases for the cysts to be mature. We do not know whether the cysts complete their maturation upon inoculation or whether immature cysts respond to the stimulus and excyst directly. The cysts used can be either from stool or from cultures - <em>Entamoeba</em> cultures in LE medium in particular frequently produce small numbers of cysts spontaneously.</p>
+
+            <p>The bacterial flora used in the above method is separated from another xenic culture by inoculating into culture medium, without rice starch, a small amount of supernatant from an established culture, subculturing twice and refrigerating the flora for 48 hours. The successful separation of the flora can be checked by inoculating a substantial volume into fresh medium with rice starch and checking for amebal growth. The flora can be stored at 4&deg; C indefinitely.</p>
+
+            <p>The second method is that of Smedley and is used when <em>B. hominis</em> appears in cultures. It does not rely on cysts being present and so has advantages over the method of Dobell and Laidlaw in that respect. However, the method may need to be repeated a couple of times before the <em>B. hominis</em> is completely eliminated. Cultures are pelleted and the pellet, which contains a mixture of all the organisms present, is resuspended in distilled water at room temperature for 15 minutes. The material is then re-pelleted and inoculated into fresh culture medium. Perhaps surprisingly, many <em>Entamoeba</em> trophozoites survive this treatment while <em>B. hominis</em> generally does not. A few cells of <em>B. hominis</em> may survive and start to grow, and the procedure will then need to be repeated. The advantage of Smedley's method is its simplicity and the fact that no separate bacterial flora is needed.</p>
+
+            <p>Other unwanted organisms such as fungi and trichomonads will usually disappear from xenic cultures after several passages. However, occasional instances of balanced mixed cultures are known.</p>
+
+            <h3>Isolation:</h3>
+            <p>In our experience LE has proven to be the best medium for primary isolation of <em>Entamoeba</em> species from stool, although we have limited experience with Robinson's medium which is widely used by others for this purpose. TYSGM-9 can also be used for isolation but its primary utility is in generating large numbers of amebae from established cultures. The numbers of amebae obtained from the two diphasic media are generally low in comparison with TYSGM-9, but their success in primary isolation amebae from microscopically positive stool is higher. In all cases, rice starch is added to the medium before inoculation, as are the antibiotics when needed.</p>
+
+            <p>Material for inoculation of xenic cultures can be prepared in several ways. Most commonly, stool samples are emulsified in saline and passed through a mesh to remove most of the larger particulates from the material before addition to the culture medium. However, small-pea sized pieces of fecal material can be added directly to the medium. It is always a good idea to include portions of the stool that appear mucoid or bloody if these are present. Stool fractionation by flotation in zinc sulfate is also used as this reduces the amount of debris while concentrating the cysts present in the sample. We routinely use more than one medium, if available, and set up duplicate cultures where one has antibiotics added and the other not. Penicillin/streptomycin or erythromycin are the antibiotics of choice as they appear to have little direct effect on the amebae. However, the widespread occurrence of antibiotic resistance in bacteria makes it impossible to generalize about the amount and type of antibiotics necessary to control the growth and rice-splitting activity of human bacterial flora.</p>
+
+            <p>Culture tubes, containing medium and rice starch, to which stool derived material has been added are incubated vertically at 35.5&deg; C for 48 hours before examination. Ideally, examination should be done in situ if possible. This can be accomplished by slanting the tubes and using an inverted microscope. Amebae can be observed adhering to the walls of the glass culture tubes above the fecal material (and the slant in diphasic media). In situ examination is much easier in monophasic medium due to its relative clarity. Alternatively, a drop of sediment can be extracted from the tube for examination on a microscope slide. If no growth is observed at 48 hours a blind passage should be made. The culture tube is chilled in an ice-water bath for 5 minutes (to release amebae adhering to the glass) and most of the liquid overlay discarded to leave less than 1 ml in the tube. The sediment is resuspended in the remaining fluid and transferred to a fresh culture tube with medium and rice starch (and antibiotic if appropriate). After incubation for a further 48 hours the culture is reexamined as above. If no amebae are seen the subculture method is identical except that the size of the inoculum will be gradually reduced as the numbers of amebae increase.</p>
+
+            <p>Initially, it is usually helpful to centrifuge the cultures (275 x g, 3 minutes) and split the pellet among the recipient tubes. This can be done by chilling the culture tube, inverting several times to detach adherent amebae, and transferring the liquid phase to an empty culture tube before pelleting (cultures in LE medium can be pelleted in situ, but in our experience the agar slant of Robinson's medium is not as conducive to this approach). As growth improves, pelleting is no longer necessary as measured inocula (&lt;&lt; 2 ml) can be transferred to the fresh medium.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+        <div id="maintenance-cultures" style="display:none;">
+            <div class="species-page">
+                <h2 style="text-align:center; color:#7a1e7a;">Maintenance of <em>E. histolytica</em> Cultures</h2>
+                <hr />
+                <p>Established cultures of all three parasites are essentially handled in the same way.</p>
+
+                <p><strong>Xenic cultures</strong> of <em>E. histolytica</em> are routinely passaged at 48-72 hour intervals; usually a Monday/ Wednesday/ Friday schedule is convenient. The inoculum size for the longer incubation period should be smaller than that for shorter incubations. However, variation among isolates and flora means that no generalities can be made regarding the size of inocula or the amount of rice and antibiotics to be added to the medium for optimal growth. It is very much a case of trial and error combined with experience in evaluating growth of cultures that leads to successful establishment of <em>E. histolytica</em> in xenic culture. It is recommended that xenic cultures be passaged using two or more inoculum sizes to ensure a successful subculture. A significant threshold effect can sometimes be encountered, where a certain inoculum size gives rise to a healthy culture but an inoculum smaller by as little as 50 &micro;l may result in no amebal growth.</p>
+
+                <p><strong>Axenic cultures</strong> of <em>E. histolytica</em> are passaged at 72 and 96 hour intervals, with a Monday/ Friday schedule being convenient. Again the inocula for the longer incubation period should be smaller than for the shorter, and again trial and error is needed to find out exactly what those are, due to significant variation among isolates. While counted inocula are desirable, established cultures become predictable and measured volume inocula can be used.</p>
+
+                <p>Visual inspection of every culture before subculture is recommended since what appears to be a heavy culture may in fact contain many lysed cells, indicating that the previous inoculum used was too large. An increased inoculum volume may be warranted for the following subculture to compensate for the dead amebae. Likewise, parallel duplicate cultures are recommended in case of inadvertent contamination or tube breakage. The unused culture can be kept at 33&deg; C as a 'backup' in case of problems.</p>
+
+                <p>The method for subculturing all types of cultures is essentially the same. Cultures are chilled in an ice-water bath for 5 minutes (both xenic and axenic <em>E. histolytica</em>) to release trophozoites attached to the glass culture tube. Chilled tubes are inverted several times to disperse the cells and a measured inoculum is passed aseptically to a culture tube containing 13 ml of fresh medium. The tubes are capped tightly and incubated at 35.5&deg; C, either vertically (xenic cultures) or at 5&deg; to the horizontal (established axenic cultures).</p>
+
+                <div class="modal-footer">
+                    <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                    <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="treatment-desc" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Treatment of <em>Entamoeba histolytica</em> Infection</h2>
+            <hr />
+            <p>Advice on the treatment of symptomatic and asymptomatic <em>E. histolytica</em> infection is beyond the scope of this site and in any case should be provided by the individual's personal physician. However, for those interested in clinical diagnosis and treatment, information can be found in the following three publications:</p>
+
+            <p><strong>Pillai, D.R., Keystone, J.S. &amp; Kain, K.C. (2000)</strong> Treatment. In J. I. Ravdin (ed.), <em>Amebiasis</em>. London: Imperial College Press, pp. 127-136.</p>
+
+            <p><strong>Ravdin, J.I. (1995)</strong> Amebiasis (Review). <em>Clin. Infect. Dis.</em> 20: 1453-1466.</p>
+
+            <p><strong>Reed, S.L. (1992)</strong> Amebiasis: an update. <em>Clin. Infect. Dis.</em> 14: 385-393.</p>
+
+            <p>Based on these and other recent publications the usual drug regimens recommended are:</p>
+
+            <div style="overflow:auto;">
+            <table class="treatment-table">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:6px;">Presentation:</th>
+                        <th style="border:1px solid #ccc; padding:6px;">Drug:</th>
+                        <th style="border:1px solid #ccc; padding:6px;">Adult Dosage:</th>
+                        <th style="border:1px solid #ccc; padding:6px;">Efficacy:</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #ccc; padding:6px;">Asymptomatic cyst passage - (luminal infection only)</td>
+                        <td style="border:1px solid #ccc; padding:6px;">Diloxanide furoate<br/>Iodoquinol (Diiodohydroxyquin)</td>
+                        <td style="border:1px solid #ccc; padding:6px;">500 mg t.i.d., 10 days<br/>650 mg t.i.d., 20 days</td>
+                        <td style="border:1px solid #ccc; padding:6px;">87-96%<br/>95%</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ccc; padding:6px;">Invasive Rectocolitis</td>
+                        <td style="border:1px solid #ccc; padding:6px;">Metronidazole<br/>Tinidazole</td>
+                        <td style="border:1px solid #ccc; padding:6px;">750 mg t.i.d., 5-10 days OR 50 mg/kg, 1 dose<br/>50 mg/kg q.d., 3 days</td>
+                        <td style="border:1px solid #ccc; padding:6px;">90+% / 86%</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ccc; padding:6px;">Amoebic Liver Abscess</td>
+                        <td style="border:1px solid #ccc; padding:6px;">Metronidazole<br/>Tinidazole<br/>Ornidazole</td>
+                        <td style="border:1px solid #ccc; padding:6px;">750 mg t.i.d., 5-10 days OR 2.4 g q.d., 1-2 days<br/>2 g p.o.<br/>2 g p.o.</td>
+                        <td style="border:1px solid #ccc; padding:6px;">95%</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+
+            <p><strong>Note:</strong> Treatment of invasive amoebiasis should ALWAYS be followed up with treatment for lumenal parasites as these are not eliminated by the drug regimen for invasive disease in many cases.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="materials-sources" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Sources of materials</h2>
+            <hr />
+            <p>While other sources are no doubt available, the suppliers of medium components used in the NIH laboratory and that have been tested for their ability to support growth of these parasites are:</p>
+            <ul>
+                <li>American Laboratories, Inc., Omaha, NE, USA: Gastric mucin (Catalog # 014)</li>
+                <li>Becton Dickinson Co., Cockeysville, MD, USA: BBL Casein Digest Peptone (Catalog # 97023) and yeast extract (Catalog # 11929).</li>
+                <li>Biofluids, Inc., Rockville, MD, USA: Vitamin mixture #18 (Catalog # 318) and Adult bovine serum (Catalog # 203).</li>
+            </ul>
+
+            <p>Other sources of serum can be found <a href="#" data-content="materials-sources-list">here</a>.</p>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Materials: detailed country list index -->
+    <div id="materials-sources-list" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">Contact Information for Companies Selling Adult Bovine Serum</h2>
+            <hr />
+            <p>Please select a country to view known suppliers (click a name to view details):</p>
+            <ul>
+                <li><a href="#" data-content="mat-Argentina">Argentina</a></li>
+                <li><a href="#" data-content="mat-Australia">Australia</a></li>
+                <li><a href="#" data-content="mat-Austria">Austria</a></li>
+                <li><a href="#" data-content="mat-Israel">Israel</a></li>
+                <li><a href="#" data-content="mat-Italy">Italy</a></li>
+                <li><a href="#" data-content="mat-Japan">Japan</a></li>
+                <li><a href="#" data-content="mat-Korea">Korea</a></li>
+                <li><a href="#" data-content="mat-Mexico">Mexico</a></li>
+                <li><a href="#" data-content="mat-Netherlands">Netherlands</a></li>
+                <li><a href="#" data-content="mat-NewZealand">New Zealand</a></li>
+                <li><a href="#" data-content="mat-SouthAfrica">South Africa</a></li>
+                <li><a href="#" data-content="mat-UK">UK</a></li>
+                <li><a href="#" data-content="mat-USA">USA</a></li>
+            </ul>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Country-specific entries (hidden sources) -->
+    <div id="mat-Argentina" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Argentina</h3>
+            <p><strong>NATOCOR</strong><br/>
+            E-mail Address : natocor@powernet.com.ar or info@natocor.com.ar</p>
+            <p>Used by Dr. Hugo Luján, University of Córdoba, and Dra. Hortensia Magaro, University of Rosario, for axenic growth of Giardia.</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Australia" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Australia</h3>
+            <p><strong>Starrate Pty Ltd</strong><br/>
+            Starrate Avenue, Bethungra, New South Wales 2590, AUSTRALIA<br/>
+            Tel : +61(0)269 434203<br/>
+            E-mail Address : starrate@starrate.net</p>
+
+            <p><strong>Selborne Biological Services Pty Ltd</strong><br/>
+            Mountford, 390 Illawarra Road, Longford, Tasmania 7301, Australia<br/>
+            Tel : +61 363 911 499<br/>
+            E-mail address: sbsaust@tassie.net.au</p>
+
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Austria" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Austria</h3>
+            <p><strong>PAA Labor- und Forschungsgesellschaft mbH</strong><br/>
+            Wiener Str. 131, A-4020 Linz, Austria<br/>
+            Tel : +43 73 2330890</p>
+            <p>Used by Dr. Tineke Lauwaet and Dr. Nancy Guillén. Note the need to filter serum before use.</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Israel" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Israel</h3>
+            <p><strong>Beith Haemeck Biological Industries</strong><br/>
+            Kibbutz Beit Haemek, 25115 Israel<br/>
+            E-mail Address : bioind@inter.net.il</p>
+            <p>Used by Dr. Serge Ankri and others. Note: some initial difficulties adapting cells to new serum reported.</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Italy" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Italy</h3>
+            <p><strong>EuroClone</strong><br/>
+            Via Figino, 20/22, 20016 Pero (Milan) - Italy<br/>
+            Tel : ++39.02.38195334<br/>
+            E-mail Address : info@euroclone.net</p>
+            <p>Note: Not tested for support of axenic Entamoeba growth.</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Japan" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Japan</h3>
+            <p><strong>SB Trading Co. Ltd.</strong><br/>
+            Ginza Fugetsudo Building 5F, 6-6-1 Ginza, Chuo-ku, Tokyo 104-0061, Japan<br/>
+            Tel : +81 3 6215 8519</p>
+            <p>Company also has subsidiaries in Australia, UK and the USA.</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Korea" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Korea</h3>
+            <p><strong>Koma Biotech</strong><br/>
+            6F, Kaya Venture bldg., Yeongdeungpo-gu, Seoul, KOREA<br/>
+            E-mail Address : komainfo@komabiotech.com</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Mexico" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Mexico</h3>
+            <p><strong>Laboratorios Microlab, S.A. de C.V.</strong><br/>
+            Cerrada Cruz Verde 13 bis, Col. Lomas Quebradas, C.P. 10000, México, D.F.<br/>
+            Tel : (52)(55) 5595-1264</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-Netherlands" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">Netherlands</h3>
+            <p><strong>bioTRADING benelux B.V.</strong><br/>
+            Bozenhoven 102, 3641 AH Mijdrecht, The Netherlands<br/>
+            E-mail Address : info@biotrading.com</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-NewZealand" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">New Zealand</h3>
+            <p><strong>Southern Cross Biotechnologies (NZ) Ltd.</strong><br/>
+            P O Box 19788, Avondale, Auckland-1026, New Zealand<br/>
+            E-mail Address : vijay@southerncrossbiotech.com</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-SouthAfrica" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">South Africa</h3>
+            <p><strong>Highveld Biological</strong><br/>
+            P.O.Box 1456, Lyndhurst, 2106, South Africa<br/>
+            Tel : +27-11-608-3508<br/>
+            E-mail Address : elke@hibi.co.za</p>
+            <p>Used by Prof. Terry Jackson.</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-UK" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">UK</h3>
+            <p><strong>EuroClone</strong><br/>
+            Unit 413, Thorp Arch Estate, Wetherby, West York, LS23 7BJ, United Kingdom<br/>
+            E-mail Address : headquarters@euroclone.net</p>
+            <p><strong>JRH Biosciences Europe Ltd.</strong><br/>
+            Smeaton Road, West Portway, Andover, Hampshire SP10 3LF, UNITED KINGDOM<br/>
+            E-mail Address : info-eu@jrhbio.com</p>
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mat-USA" style="display:none;">
+        <div class="species-page">
+            <h3 style="color:#7a1e7a;">USA</h3>
+            <p><strong>BioSource International, Inc.</strong><br/>
+            542 Flynn Road, Camarillo, CA 93012<br/>
+            E-mail Address : sales.desk@biosource.com</p>
+
+            <p><strong>Gemini Bio-Products</strong><br/>
+            1301 East Beamer Street, Woodland, CA 95776<br/>
+            E-mail Address : CustomerService@gembio.com</p>
+
+            <p><strong>HyClone</strong><br/>
+            Tel : 1-800-HYCLONE (492-5663)<br/>
+            E-mail Address : info@hyclone.com</p>
+
+            <div class="modal-footer">
+                <a href="#" data-content="materials-sources-list">Back to list</a>
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cryopreservation protocol -->
+    <div id="cryopreservation" style="display:none;">
+        <div class="species-page">
+            <h2 style="text-align:center; color:#7a1e7a;">CRYOPRESERVATION OF <em>ENTAMOEBA</em> SPECIES</h2>
+            <hr />
+            <p>Freezing (cryopreservation) and recovery of axenic <em>E. histolytica</em> is always difficult as they are much more sensitive than many other cell types. The critical stage appears to be thawing of vials after removal from LN2. Only a few cells normally survive, so it is important to handle them gently and not to give up too soon!</p>
+
+            <p>The most detailed published protocol is Diamond, L. S. (1995) "Cryopreservation and storage of parasitic protozoa in liquid nitrogen." J Euk Microbiol 42(5): 585-590 but the one we have been using recently is based on one by Samarawickrema, N. A., et al. (2001) "A rapid-cooling method for cryopreserving <em>Entamoeba histolytica</em>." Ann. Trop. Med. Parasitol. 95(8): 853-855.</p>
+
+            <h3>PROTOCOL:</h3>
+            <p><strong>!!! Pre-chill a cell freezer with isopropanol at -70 &deg;C for at least 24 hrs before starting !!!</strong></p>
+
+            <ul>
+                <li>Chill stationary phase cells on ice for 5 mins</li>
+                <li>Spin down at 275 x g for 5 mins</li>
+                <li>Decant and discard supernatant</li>
+            </ul>
+
+            <p>Using two 16 x 125 mm borosilicate tubes, fill as follows (This is used even if the cells to be frozen are not axenic):</p>
+            <ul>
+                <li><strong>Tube 1</strong> - 5 ml base axenic culture medium (we use LYI) and 5 ml serum (heat inactivated bovine serum) - final concentration is 50% serum</li>
+                <li><strong>Tube 2</strong> - Transfer 5 ml from tube 1 to tube 2 and add 0.75 ml DMSO to give a concentration of ca. 15% DMSO</li>
+            </ul>
+
+            <h4>Volumes depend on the number of tubes being frozen. The protocol below is for 4 cryotubes, derived from 4 tubes of axenic cells:</h4>
+            <ul>
+                <li>Resuspend the parasites in 2 ml of tube 1 mixture i.e. 50% serum/medium</li>
+                <li>Transfer 0.5 ml of suspension into each NUNC cryotube</li>
+                <li>Then add 0.5 ml of the 15% DMSO solution from tube 2 into each cryotube, already containing 0.5 ml parasite suspension</li>
+                <li>Place in the 36 &deg;C incubator for 15 mins (this allows the parasite to absorb the DMSO)</li>
+                <li>Then subject to rapid cooling by transferring the cryotubes directly into a bath of isopropanol pre-chilled to -70 &deg;C</li>
+                <li>The bath (with the cryotubes) should be placed in a -70 &deg;C freezer for 48 h</li>
+                <li>After this time the cryotubes should then be transferred directly into the liquid nitrogen (at -196 &deg;C) for storage of 7 days minimum before testing the success of the freeze.</li>
+            </ul>
+
+            <h3>Reviving of cells:</h3>
+            <ul>
+                <li>The cryotube is rapidly thawed by transferring straight from liquid nitrogen to a water bath at 36 &deg;C and left without agitating for 2-5 minutes until completely thawed.</li>
+                <li>Thawed cells are then gently transferred directly into a culture tube containing 10 ml - 12 ml medium pre-warmed to the normal cultivation temperature (volume and type of medium and % serum depends on what is routinely used for that specific culture/species)</li>
+                <li>The parasites are then incubated at the normal cultivation temperature for 48-72 h without further manipulation. Only a few live cells normally survive.</li>
+                <li>Either 48 h or 72 h after thawing, the medium is decanted off with minimal disruption and replaced with fresh medium.</li>
+                <li>After another 72 h check for viable trophozoites and carry on sub-culturing as normal. Initially a large inoculum may be necessary.</li>
+            </ul>
+
+            <div class="modal-footer">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+    <div id="dna-purification" style="display:none;">
+        <div class="species-page">
+            <h1 style="text-align:center;">DNA Isolation</h1>
+            <p style="text-align:center;"><strong>UPDATE -</strong></p>
+            <p style="text-align:center;">A more rapid version of this protocol has been developed and is available <a href="#">here</a>. It has been shown to result in usable DNA from stool samples also.</p>
+            <hr />
+            <h3>BACKGROUND</h3>
+            <p>DNA isolated from sources rich in carbohydrates is often refractory to manipulation by standard molecular biology techniques. Plan biologists and bacteriologists independently used cetyltrimethylammonium bromide (CTAB) to selectively remove these carbohydrates from their samples. This reagent has also proven useful in the isolation of DNA from <em>Entamoeba</em> using the method below. <em>Entamoeba</em> is known to store glycogen and standard DNA isolation methods often yield DNA that is difficult to digest with restriction enzymes or use as a template for polymerase chain reaction. Whether this is due to the glycogen is not established but it is quite likely to be the case. The same method has also been used to isolate DNA from a wide range of unicellular eukaryotes with excellent results.</p>
+
+            <h3>METHOD</h3>
+            <h4>Sample collection</h4>
+            <p>My own experience has been only with material from in vitro cultures so that readers may want to find methods for DNA isolation directly from stool or other sources elsewhere. However, I know from work by other researchers that this method has been used successfully to isolate <em>Entamoeba</em> DNA from stool that was a suitable template for Polymerase Chain Reaction amplification.</p>
+
+            <h4>Sample preparation from cultures</h4>
+            <p>Xenic or axenic material from mono- or di-phasic medium is harvested by chilling (to release cells from the culture vessel) and centrifugation, followed by transfer of the pellet to a microcentrifuge tube, repelleting, and dispersal in 250 &micro;l of lysis buffer (0.25% SDS in 0.1M EDTA pH 8.0). Samples are stable for months in this condition at 4&deg; C and I have successfully shipped such lysates by mail.</p>
+
+            <ol>
+                <li>A pellet of at least 50 &micro;l packed volume can be processed with the following protocol. To the ca. 300 &micro;l lysate, add Proteinase K to 100 &micro;g/ml and incubate at 55&deg; C for 1 hour.</li>
+                <li>Add 75 &micro;l of 3.5 M NaCl, mix gently then add 42 &micro;l of 10% CTAB/0.7 M NaCl (heated to 55&deg; C), mix and incubate at 65&deg; C for 20 minutes.</li>
+                <li>At room temperature add 400 &micro;l of chloroform, mix well by inverting and spin at full speed in a microcentrifuge for 10 minutes.</li>
+                <li>Transfer the supernatant to a fresh tube and add 400 &micro;l of phenol:chloroform:isoamyl alcohol (25:24:1), mix well by inversion and spin as above.</li>
+                <li>Transfer the supernatant to a fresh tube and add two volumes of 100% ethanol, mix by inversion, store at room temperature for at least 5 minutes and then spin 15 minutes as above.</li>
+                <li>Carefully discard the supernatant from the pellet and wash the pellet in 200 &micro;l of 70% ethanol by spinning for 5 minutes as above.</li>
+                <li>Air dry the pellet and resuspend it in up to 50 &micro;l water.</li>
+                <li>Pass the resuspended DNA over a Sephacryl S400 spin column (0.5 ml packed matrix; 850 x g 5 minutes).</li>
+            </ol>
+
+            <div style="border-top:1px solid #ccc; margin-top:16px; padding-top:12px; background:#fff8e6;">
+                <p><strong>Note 1:</strong> CTAB is a cationic detergent that binds polysaccharides under these salt conditions. It is important to maintain the NaCl concentration above 0.5 M or a CTAB-DNA precipitate will form. Heating at 65&deg; C will be necessary to dissolve the 10% CTAB and the stock should be reheated each time before use to reduce viscosity.</p>
+                <p><strong>Note 2:</strong> This step precipitates the CTAB-Polysaccharide complex. The interface can be very large and the recovered volume much less than expected, but in my experience reextracting the interface with 0.7 M NaCl yields little additional DNA.</p>
+                <p><strong>Note 3:</strong> Although I have had success using DNA directly after resuspension, the Sephacryl S400 can remove certain compounds that are inhibitory to PCR, restriction enzymes, etc. without loss of DNA. DNA can be stored at -20&deg; C.</p>
+            </div>
+
+            <div class="modal-footer" style="margin-top:14px;">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="riboprinting" style="display:none;">
+        <div class="species-page">
+            <h1 style="text-align:center;">Riboprinting</h1>
+            <p style="text-align:center;">(Based on refs. 1, 2 and 21)</p>
+            <hr />
+            <h3>BACKGROUND</h3>
+            <p>Many eukaryotic microorganisms have a simple structure that does not lend itself well to the traditional, morphology-based, classification systems. This is often due to secondary loss of cytoskeletal and flagellar microtubules which eliminates the very structures that are used most in protist classification schemes. Molecular methods can generate new characters for use in classification regardless of the morphological complexity of the organism of interest.</p>
+
+            <p>The polymerase chain reaction (PCR) amplifies large amounts of a specific DNA sequence from an organism using oligonucleotides complementary to the sequence to prime its replication by the DNA polymerase enzyme. As it theoretically can be used with a single cell as the starting material, this method clearly has many advantages where material is limiting. For a PCR-based method to generate useful data for classification, certain criteria must be met: it must not be dependent on prior knowledge of the genetic organisation of the organism; it must not be affected by the presence of bacterial DNA in the sample, as many eukaryotic microbes are found in association with numerous free-living or symbiotic bacteria; the DNA sequence to be analysed must be ubiquitous and conserved in the organisms of interest; the sequence must at the same time be variable enough so that species specific markers can be identified. Genes that match these apparently contradictory criteria include those encoding the small and large subunit ribosomal RNAs (rDNA).</p>
+
+            <p>The structure of rDNA is mosaic in nature, consisting of interspersed stretches of highly conserved, moderately conserved and divergent sequences. Regions can be identified that are conserved among all eukaryotic nuclear rDNAs but are distinct enough from bacterial rDNAs such that no amplification of the latter will occur in the PCR reaction. This method of specifically amplifying eukaryotic rDNA was first described by Medlin et al. as a way to isolate these genes for cloning and DNA sequencing. This approach has been very successful and is largely responsible for the availability of hundreds of the eukaryotic small subunit rDNA sequences currently in the databases. However, DNA sequencing is a labour intensive and expensive proposition if many different related organisms are to be studied. Therefore a way of examining these genes is needed that is comparatively quick and inexpensive, so that multiple isolates of the same species as well as related species can be examined, but that will still yield useful data.</p>
+
+            <h3>Method (diagram)</h3>
+            <p style="text-align:center;">
+                <!-- Visible image with a clickable link to open the image in a new tab -->
+                <a href="images/riboprinting-figure.svg" target="_blank" rel="noopener">
+                    <img src="images/riboprinting-figure.svg" alt="Riboprinting diagram" style="max-width:90%; height:auto; border:1px solid #ccc; padding:6px; background:#fff;" />
+                </a>
+            </p>
+
+            <p>The method is shown diagrammatically in the figure above. DNA is isolated from the organisms and used as the template in a polymerase chain reaction. Two of the most highly conserved sequences in the small subunit rDNA are at each end of the small subunit gene. Oligonucleotide primers that are complementary to these regions can are used to amplify the small subunit rDNA. After the PCR is completed, a large quantity of what is essentially the complete small subunit rDNA has been generated. This amplified rDNA is then digested with restriction enzymes and the fragments separated in agarose gels along with a DNA size marker. The gels are then stained and photographed to provide a permanent record. Some of the restriction sites will fall in conserved regions and some in variable regions and this allows sequence polymorphisms to be detected as differences in the restriction fragment sizes.</p>
+
+            <h3>METHODS</h3>
+            <h4>Polymerase Chain Reaction Amplification</h4>
+            <ol>
+                <li>Create a standard PCR master mix allowing 45 &micro;l per reaction - for 'Z' reactions thaw the solutions on ice and mix:
+                    <ul>
+                        <li>5xZ &micro;l of 10xPCR buffer</li>
+                        <li>0.5xZ &micro;l of each primer in the pair (200 &micro;M stock solution).</li>
+                        <li>2xZ &micro;l of each dNTP (10 &micro;M stock)</li>
+                        <li>0.5xZ &micro;l of Taq Polymerase</li>
+                        <li>30.5xZ &micro;l of H2O.</li>
+                    </ul>
+                </li>
+                <li>Place 5 &micro;l of each DNA solution in 0.5 ml microcentrifuge tubes on ice, aliquot 45 &micro;l of the master mix into each tube and overlay the reaction mixture with 50 &micro;l of light mineral oil.</li>
+                <li>Program the thermal cycler to run 30 cycles of: 94&deg; C - 1 minute; 55&deg; C - 1.5 minutes; and 72&deg; C - 2 minutes. Transfer the reaction tubes from the ice to the block and start the cycle sequence.</li>
+                <li>After cycling is over, extract the reactions with 100 &micro;l of CHCl3, briefly spin and remove the supernatant to a clean microcentrifuge tube. Success of the amplification reaction can be monitored by electrophoresis of an aliquot in a 0.8% agarose gel in 1X Tris Borate Buffer at 10 V/cm for 1 hour. The gel is then stained in 1 &micro;g/ml ethidium bromide and destained in water for 15 minutes each on a rotary platform shaker before visualization of the DNA on a UV transilluminator and photographing the gel to obtain a permanent record.</li>
+                <li>Meanwhile, precipitate the amplification products by adding 0.1 volume of 3 M sodium acetate and 2 volumes of 100% ethanol. Vortex the mixture and let it stand for at least 5 minutes at room temperature. Spin the tube at full speed in a microcentrifuge for 15 minutes, wash the pellet with 200 &micro;l of 70% ethanol by spinning for 5 minutes, then dry and resuspend it in 50 &micro;l H2O.</li>
+                <li>To visualize the full restriction pattern it is necessary to remove residual primers by passing the amplification product over a Sephacryl S400 (1 ml packed volume) spin column before digestion (see here for details).</li>
+                <li>The product is digested with restriction enzymes. The more enzymes used the more information is obtained - I recommend 12 enzymes all of which recognise a 4-base sequence.</li>
+            </ol>
+
+            <h3>CAVEATS</h3>
+            <p>Riboprinting has its limitations: only 10-15% of the gene sequence is sampled by this indirect method; some variation will go undetected unless divergence falls within restriction sites. Identical riboprints do not necessarily indicate identical species. Building trees based on fragment co-migration data assumes homology of comigrating fragments which is not always correct. Riboprinting is less sensitive than isoenzyme analysis in some cases. Mixtures of organisms can complicate interpretation.</p>
+
+            <div style="border-top:1px solid #ccc; margin-top:16px; padding-top:12px; background:#fff8e6;">
+                <p><strong>Note 1:</strong> The choice of the primer pair used depends on the species involved. Amplification of the SSU-rDNA of many species uses the primer pair RD5 and RD3 which amplifies almost the entire SSU-rRNA gene.</p>
+                <p><strong>Note 2:</strong> It is often useful to try at least two DNA concentrations for each DNA preparation, e.g. a 1:10 and a 1:100 dilution. Include a negative control using 5 &micro;l H2O instead of DNA.</p>
+            </div>
+
+            <div class="modal-footer" style="margin-top:14px;">
+                <a href="#" class="back-link">Back to Laboratory Methods Page</a>
+                <a href="index.html" class="home-link">Back to Entamoeba Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for content pages -->
+    <div id="contentModal" class="content-modal" style="display:none;">
+        <div class="content-modal-inner">
+            <button class="modal-close" aria-label="Close">&times;</button>
+            <div id="modalContent" tabindex="-1"></div>
+        </div>
+    </div>
 </body>
 
 </html>

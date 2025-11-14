@@ -16,6 +16,8 @@ const client = new MongoClient(uri);
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+// Also serve the top-level Entamoeba_images folder so images can be referenced
+app.use('/Entamoeba_images', express.static(path.join(__dirname, 'Entamoeba_images')));
 
 // Root route to serve the HTML file
 app.get('/', (req, res) => {
@@ -30,7 +32,7 @@ app.get('/admin', (req, res) => {
 // Test endpoint to check if protein data is accessible
 app.get('/test-protein', (req, res) => {
     const fs = require('fs');
-    const filePath = path.join(__dirname, 'public', 'Data', 'Entamoeba Histolytica', 'annotated_protein.json');
+    const filePath = path.join(__dirname, 'public', 'Data', 'Entamoeba Histolytica', 'AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedProteins.json');
     
     console.log('Testing protein file access:', filePath);
     
@@ -72,7 +74,7 @@ app.get('/search', async (req, res) => {
             return res.status(400).send("Invalid search query.");
         }
 
-        if (query.includes("Transcriptomics")) {
+        if (/transcriptomics|transcripts/i.test(query)) {
             // Find documents with the 'transcript_id' field
             mongoQuery.transcript_id = { "$exists": true };
         } else if (query.includes("Protein Sequence")) {
@@ -101,13 +103,30 @@ function getDataFilePath(organism, dataType) {
         const organismPath = path.join(basePath, 'Entamoeba Histolytica');
         switch (dataType) {
             case 'transcriptomics':
-                return path.join(organismPath, 'annotated_transcripts.json');
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedTranscripts.json');
             case 'protein':
-                return path.join(organismPath, 'annotated_protein.json');
-            case 'gene':
-                return path.join(organismPath, 'gene.json');
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedProteins.json');
+            case 'cds':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedCDSs.json');
             case 'genome':
-                return path.join(organismPath, 'genome.json');
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_Genome.json');
+            case 'codon-usage':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_CodonUsage.json');
+            case 'orf':
+            case 'orf50':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_Orf50.json');
+            case 'gene-aliases':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_GeneAliases.json');
+            case 'curated-go':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_Curated_GO.gaf.json');
+            case 'go-gaf':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_GO.gaf.json');
+            case 'ncbi-linkout-nucleotide':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Nucleotide.json');
+            case 'ncbi-linkout-protein':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Protein.json');
+            case 'full-gff':
+                return path.join(organismPath, 'AmoebaDB-68_EhistolyticaHM1IMSS.json');
         }
     } else if (organism === 'invadens') {
         const organismPath = path.join(basePath, 'Entamoeba Invadens');
@@ -164,8 +183,13 @@ function authenticateAdmin(req, res, next) {
 app.get('/admin/api/data/:organism/:dataType', authenticateAdmin, (req, res) => {
     const { organism, dataType } = req.params;
     const filePath = getDataFilePath(organism, dataType);
-    
-    if (!filePath || !fs.existsSync(filePath)) {
+    // Debugging/logging: show what was requested and the resolved file path
+    console.log(`[ADMIN GET] request for ${organism}/${dataType}`);
+    console.log(`[ADMIN GET] resolved filePath: ${filePath}`);
+    const exists = filePath && fs.existsSync(filePath);
+    console.log(`[ADMIN GET] file exists? ${exists}`);
+
+    if (!filePath || !exists) {
         return res.status(404).json({ error: 'Data file not found' });
     }
     

@@ -70,6 +70,14 @@ function setupEventListeners() {
     }
 }
 
+// Helper: build auth headers for admin API calls
+function getAdminAuthHeaders() {
+    return {
+        'Authorization': 'Bearer admin:amoeba2024',
+        'Content-Type': 'application/json'
+    };
+}
+
 function checkAuthStatus() {
     // Check if admin is already logged in (session storage)
     const adminSession = sessionStorage.getItem('adminLoggedIn');
@@ -151,11 +159,11 @@ function showWelcomeScreen() {
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Datasets</h3>
-                    <span id="totalDatasets">11</span>
+                        <span id="totalDatasets">15</span>
                 </div>
                 <div class="stat-card">
                     <h3>Histolytica Files</h3>
-                    <span id="histolyticaFiles">4</span>
+                        <span id="histolyticaFiles">8</span>
                 </div>
                 <div class="stat-card">
                     <h3>Invadens Files</h3>
@@ -174,19 +182,52 @@ async function loadDataManagement(organism, dataType) {
     adminContent.innerHTML = '<div class="loading">Loading data...</div>';
     
     try {
-        // Load data based on organism and type
-        const endpoint = getDataEndpoint(organism, dataType);
-        const response = await fetch(endpoint);
-        
+        // Load data via admin API so we can authenticate and get server-provided structure
+        const apiUrl = `/admin/api/data/${organism}/${dataType}`;
+        const response = await fetch(apiUrl, { headers: getAdminAuthHeaders() });
         if (!response.ok) {
-            throw new Error(`Failed to load data: ${response.statusText}`);
+            const text = await response.text();
+            throw new Error(`Failed to load data: ${response.status} ${text}`);
         }
         
-        const data = await response.json();
-        currentData = data;
-        
-        // Display data management interface
-        displayDataManagement(organism, dataType, data);
+        const rawResp = await response.json();
+        // server returns { success: true, data: <...>, count, filePath }
+    const raw = rawResp && rawResp.data ? rawResp.data : rawResp;
+        // Normalize common container structures (records, features, data)
+        const data = (function normalizeLoadedData(obj) {
+            if (!obj) return [];
+            if (Array.isArray(obj)) return obj;
+            if (Array.isArray(obj.records)) return obj.records;
+            if (Array.isArray(obj.features)) return obj.features;
+            if (Array.isArray(obj.data)) return obj.data;
+            for (const key of Object.keys(obj)) {
+                if (Array.isArray(obj[key])) return obj[key];
+            }
+            return [];
+        })(raw);
+        // Special-case: some codon-usage files are exported as a 2D array
+        // where the first row is header names (e.g. ["CODON","AA","FREQ","ABUNDANCE"]) and
+        // subsequent rows are arrays of values. Convert those to objects so the admin UI
+        // can consume { CODON, AA, FREQ, ABUNDANCE } as expected.
+        let normalizedData = data;
+        if (currentOrganism === 'histolytica' && currentDataType === 'codon-usage' && Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+            const headerRow = data[0].map(h => String(h).trim());
+            const mapped = data.slice(1).map(row => {
+                const obj = {};
+                for (let i = 0; i < headerRow.length; i++) {
+                    const key = headerRow[i] || `col${i}`;
+                    const val = row && row[i] !== undefined ? String(row[i]).trim() : null;
+                    obj[key] = val;
+                }
+                return obj;
+            });
+            normalizedData = mapped;
+            console.log('Admin: Converted codon-usage 2D-array to objects, items count:', mapped.length);
+        }
+    currentData = normalizedData;
+
+    // Display data management interface (use the normalized data if we converted it)
+    displayDataManagement(organism, dataType, normalizedData);
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -203,13 +244,29 @@ function getDataEndpoint(organism, dataType) {
     if (organism === 'histolytica') {
         switch (dataType) {
             case 'transcriptomics':
-                return 'Data/Entamoeba%20Histolytica/annotated_transcripts.json';
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedTranscripts.json';
             case 'protein':
-                return 'Data/Entamoeba%20Histolytica/annotated_protein.json';
-            case 'gene':
-                return 'Data/Entamoeba%20Histolytica/gene.json';
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedProteins.json';
+            case 'cds':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_AnnotatedCDSs.json';
+            case 'codon-usage':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_CodonUsage.json';
+            case 'orf50':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_Orf50.json';
             case 'genome':
-                return 'Data/Entamoeba%20Histolytica/genome.json';
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_Genome.json';
+            case 'full-gff':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS.json';
+            case 'gene-aliases':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_GeneAliases.json';
+            case 'curated-go':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_Curated_GO.gaf.json';
+            case 'go-gaf':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_GO.gaf.json';
+            case 'ncbi-linkout-nucleotide':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Nucleotide.json';
+            case 'ncbi-linkout-protein':
+                return 'Data/Entamoeba%20Histolytica/AmoebaDB-68_EhistolyticaHM1IMSS_NCBILinkout_Protein.json';
         }
     } else if (organism === 'invadens') {
         switch (dataType) {
@@ -241,6 +298,7 @@ function displayDataManagement(organism, dataType, data) {
             <div class="data-header">
                 <h2>${organismName} - ${dataTypeName}</h2>
                 <div class="data-actions">
+                    <button class="action-btn back-btn" onclick="adminGoBackHome()">← Back</button>
                     <button class="action-btn add-btn" onclick="showAddForm()">Add Entry</button>
                     <button class="action-btn export-btn" onclick="exportData()">Export</button>
                     <button class="action-btn backup-btn" onclick="createBackup()">Backup</button>
@@ -259,12 +317,13 @@ function displayDataManagement(organism, dataType, data) {
 
 function formatDataTypeName(dataType) {
     const names = {
-        'transcriptomics': 'Transcriptomics',
+        'transcriptomics': 'transcripts',
         'protein': 'Protein Sequence',
         'gene': 'Gene Data',
         'genome': 'Genome Data',
         'cds': 'CDS Data',
         'codon-usage': 'Codon Usage',
+        'orf50': 'ORF50 Data',
         'gene-aliases': 'Gene Aliases',
         'full-gff': 'Full GFF'
     };
@@ -295,8 +354,19 @@ function generateDataTable(data, dataType) {
         tableHTML += '<tr>';
         columns.forEach(col => {
             const value = getNestedValue(item, col.key);
-            const displayValue = truncateText(value, 50);
-            tableHTML += `<td title="${escapeHtml(value)}">${escapeHtml(displayValue)}</td>`;
+            let displayValue = truncateText(value, 50);
+            let titleValue = value;
+
+            // For sequence-like header columns, format to show ID and gene only
+            if (col.header && col.header.toLowerCase() === 'header' && (currentDataType === 'transcriptomics' || currentDataType === 'protein' || currentDataType === 'cds')) {
+                // formatSequenceHeaderForDisplay will remove leading '>' and produce a compact label
+                const pretty = formatSequenceHeaderForDisplay(value);
+                displayValue = pretty;
+                // keep the full original header (without leading >) in the tooltip
+                titleValue = (typeof value === 'string' && value.startsWith('>')) ? value.slice(1).trim() : value;
+            }
+
+            tableHTML += `<td title="${escapeHtml(titleValue)}">${escapeHtml(displayValue)}</td>`;
         });
         tableHTML += `
             <td>
@@ -344,29 +414,51 @@ function getTableColumns(dataType, sampleData) {
         ]
     };
     
-    // For Invadens data types with different structure
-    if (currentOrganism === 'invadens') {
-        if (dataType === 'transcriptomics' || dataType === 'protein' || dataType === 'cds') {
-            return [
-                { key: 'header', header: 'Header' },
-                { key: 'sequence', header: 'Sequence (truncated)' }
-            ];
-        } else if (dataType === 'codon-usage') {
-            return [
-                { key: 'CODON', header: 'Codon' },
-                { key: 'AA', header: 'Amino Acid' },
-                { key: 'FREQ', header: 'Frequency' },
-                { key: 'ABUNDANCE', header: 'Abundance' }
-            ];
-        } else if (dataType === 'full-gff') {
-            return [
-                { key: 'seqid', header: 'Sequence ID' },
-                { key: 'source', header: 'Source' },
-                { key: 'type', header: 'Type' },
-                { key: 'start', header: 'Start' },
-                { key: 'end', header: 'End' }
-            ];
+    // Handle some specific structured data types (codon usage and sequence entries)
+    if (dataType === 'transcriptomics' || dataType === 'protein' || dataType === 'cds') {
+        // Many sequence-like files use header/sequence fields. Use arrays of candidate keys
+        // so getNestedValue can try fallbacks like raw_header, id, attributes.description.
+        let headerKeyCandidates = ['raw_header', 'id', 'header', 'attributes.description', 'attributes.gene', 'attributes.gene_product'];
+        let seqKeyCandidates = ['sequence', 'compressed_sequence', 'attributes.sequence'];
+
+        if (sampleData) {
+            // Promote any explicit property to the front if present
+            const promote = (arr, prop) => {
+                const idx = arr.indexOf(prop);
+                if (idx > 0) {
+                    arr.splice(idx, 1);
+                    arr.unshift(prop);
+                }
+            };
+
+            if (sampleData.raw_header) promote(headerKeyCandidates, 'raw_header');
+            if (sampleData.id) promote(headerKeyCandidates, 'id');
+            if (sampleData.header) promote(headerKeyCandidates, 'header');
+            if (sampleData.attributes && sampleData.attributes.description) promote(headerKeyCandidates, 'attributes.description');
+
+            if (sampleData.sequence) promote(seqKeyCandidates, 'sequence');
+            if (sampleData.compressed_sequence) promote(seqKeyCandidates, 'compressed_sequence');
         }
+
+        return [
+            { key: headerKeyCandidates, header: 'Header' },
+            { key: seqKeyCandidates, header: 'Sequence (truncated)' }
+        ];
+    } else if (dataType === 'codon-usage') {
+        return [
+            { key: 'CODON', header: 'Codon' },
+            { key: 'AA', header: 'Amino Acid' },
+            { key: 'FREQ', header: 'Frequency' },
+            { key: 'ABUNDANCE', header: 'Abundance' }
+        ];
+    } else if (dataType === 'full-gff') {
+        return [
+            { key: 'seqid', header: 'Sequence ID' },
+            { key: 'source', header: 'Source' },
+            { key: 'type', header: 'Type' },
+            { key: 'start', header: 'Start' },
+            { key: 'end', header: 'End' }
+        ];
     }
     
     return columnMaps[dataType] || [
@@ -376,7 +468,27 @@ function getTableColumns(dataType, sampleData) {
 }
 
 function getNestedValue(obj, key) {
-    return key.split('.').reduce((o, k) => (o || {})[k], obj) || 'N/A';
+    if (!obj) return 'N/A';
+
+    // Allow key to be an array of candidate keys
+    if (Array.isArray(key)) {
+        for (const k of key) {
+            const val = getNestedValue(obj, k);
+            if (val !== 'N/A') return val;
+        }
+        return 'N/A';
+    }
+
+    const parts = String(key).split('.');
+    let val = obj;
+    for (const p of parts) {
+        if (val && Object.prototype.hasOwnProperty.call(val, p)) {
+            val = val[p];
+        } else {
+            return 'N/A';
+        }
+    }
+    return (val === null || val === undefined) ? 'N/A' : val;
 }
 
 function truncateText(text, maxLength) {
@@ -389,6 +501,40 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Format a sequence header string for admin table display.
+ * - removes any leading '>'
+ * - extracts primary ID and gene=... token (if present)
+ * - returns a compact label like: "EHI_151170A — Gene: EHI_151170"
+ */
+function formatSequenceHeaderForDisplay(rawHeader) {
+    if (!rawHeader || rawHeader === 'N/A') return 'N/A';
+    let header = String(rawHeader).trim();
+    // remove leading > if present
+    if (header.startsWith('>')) header = header.slice(1).trim();
+
+    // split on pipe separators to find id and gene token
+    const parts = header.split('|').map(p => p.trim());
+    let idPart = parts.length > 0 ? parts[0] : header;
+    // if idPart contains spaces, take the first token
+    idPart = idPart.split(/\s+/)[0];
+
+    // find gene token like gene=EHI_151170
+    let geneMatch = header.match(/\bgene=([^\s|;]+)/i);
+    let gene = geneMatch ? geneMatch[1] : null;
+
+    if (gene) {
+        return `${idPart} — Gene: ${gene}`;
+    }
+
+    // fallback: if header contains 'transcript=' or 'protein=' fields
+    const altGene = header.match(/\b(transcript|protein)=([^\s|;]+)/i);
+    if (altGene) return `${idPart} — ${altGene[1]}: ${altGene[2]}`;
+
+    // otherwise return the idPart only
+    return idPart;
 }
 
 // CRUD Operations
@@ -409,20 +555,32 @@ function editEntry(index) {
 
 function deleteEntry(index) {
     if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
-        // Create backup before deletion
-        createBackup();
-        
-        // Remove entry from current data
-        currentData.splice(index, 1);
-        
-        // Update display
-        displayDataManagement(currentOrganism, currentDataType, currentData);
-        
-        // Show success message
-        showSuccessMessage('Entry deleted successfully!');
-        
-        // Note: In a real application, you would send this to the server
-        console.log('Entry deleted. Updated data:', currentData);
+        // Call server API to delete the entry so change is persisted
+        (async () => {
+            try {
+                const apiUrl = `/admin/api/data/${currentOrganism}/${currentDataType}/entry/${index}`;
+                const resp = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: getAdminAuthHeaders()
+                });
+                if (!resp.ok) {
+                    const text = await resp.text();
+                    throw new Error(`Delete failed: ${resp.status} ${text}`);
+                }
+
+                const json = await resp.json();
+                if (!json || !json.success) {
+                    throw new Error(json && json.message ? json.message : 'Unknown server error');
+                }
+
+                // Reload data from server to reflect canonical state
+                await loadDataManagement(currentOrganism, currentDataType);
+                showSuccessMessage('Entry deleted successfully!');
+            } catch (err) {
+                console.error('Error deleting entry:', err);
+                alert('Failed to delete entry: ' + err.message);
+            }
+        })();
     }
 }
 
@@ -433,7 +591,8 @@ function generateEntryForm(entry = null, index = null) {
     let formFields = '';
     
     // Generate form fields based on data type
-    if (currentDataType === 'transcriptomics' && currentOrganism === 'histolytica') {
+    // For Entamoeba Histolytica (AmoebaDB JSON shapes) prefer a sample-driven generic form
+    if (currentOrganism !== 'histolytica' && currentDataType === 'transcriptomics') {
         formFields = `
             <div class="form-row">
                 <div>
@@ -462,7 +621,7 @@ function generateEntryForm(entry = null, index = null) {
                 </div>
             </div>
         `;
-    } else if (currentDataType === 'protein' && currentOrganism === 'histolytica') {
+    } else if (currentOrganism !== 'histolytica' && currentDataType === 'protein') {
         formFields = `
             <div class="form-row">
                 <div>
@@ -545,27 +704,70 @@ function saveEntry(event, index = null) {
     }
     
     // Create backup before modification
-    createBackup();
-    
-    if (index !== null) {
-        // Edit existing entry
-        currentData[index] = entryData;
-        showSuccessMessage('Entry updated successfully!');
-    } else {
-        // Add new entry
-        currentData.push(entryData);
-        showSuccessMessage('Entry added successfully!');
-    }
-    
-    // Update display
-    displayDataManagement(currentOrganism, currentDataType, currentData);
-    
-    // Note: In a real application, you would send this to the server
-    console.log('Data updated:', currentData);
+    // Persist change to server (this will create a server-side backup)
+    (async () => {
+        try {
+            const baseUrl = `/admin/api/data/${currentOrganism}/${currentDataType}`;
+            let resp;
+
+            if (index !== null) {
+                // Edit existing entry
+                resp = await fetch(`${baseUrl}/entry/${index}`, {
+                    method: 'PUT',
+                    headers: getAdminAuthHeaders(),
+                    body: JSON.stringify({ entry: entryData })
+                });
+            } else {
+                // Add new entry
+                resp = await fetch(`${baseUrl}/entry`, {
+                    method: 'POST',
+                    headers: getAdminAuthHeaders(),
+                    body: JSON.stringify({ entry: entryData })
+                });
+            }
+
+            if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Save failed: ${resp.status} ${text}`);
+            }
+
+            const json = await resp.json();
+            if (!json || !json.success) {
+                throw new Error(json && json.message ? json.message : 'Unknown server error');
+            }
+
+            // Reload current data so the UI shows the canonical server state
+            await loadDataManagement(currentOrganism, currentDataType);
+            showSuccessMessage(index !== null ? 'Entry updated successfully!' : 'Entry added successfully!');
+            // Clear form
+            cancelForm();
+        } catch (err) {
+            console.error('Error saving entry:', err);
+            alert('Failed to save entry: ' + err.message);
+        }
+    })();
 }
 
 function cancelForm() {
     document.getElementById('formContainer').innerHTML = '';
+}
+
+// Return to admin panel home (welcome screen) from a data view
+function adminGoBackHome() {
+    // clear current data and UI state
+    currentData = [];
+    currentDataType = null;
+    currentOrganism = null;
+
+    // remove active states in sidebar
+    document.querySelectorAll('.data-btn').forEach(btn => btn.classList.remove('active'));
+
+    // show welcome screen (re-uses showWelcomeScreen)
+    showWelcomeScreen();
+
+    // scroll to top of admin content
+    const adminMain = document.querySelector('.admin-main');
+    if (adminMain) adminMain.scrollIntoView({ behavior: 'smooth' });
 }
 
 function showSuccessMessage(message) {
@@ -596,23 +798,31 @@ function exportData() {
 }
 
 function createBackup() {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupData = {
-        timestamp: timestamp,
-        organism: currentOrganism,
-        dataType: currentDataType,
-        data: [...currentData]
-    };
-    
-    const backupStr = JSON.stringify(backupData, null, 2);
-    const backupBlob = new Blob([backupStr], {type: 'application/json'});
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(backupBlob);
-    link.download = `backup_${currentOrganism}_${currentDataType}_${timestamp}.json`;
-    link.click();
-    
-    console.log('Backup created:', timestamp);
+    // Trigger a server-side backup by sending a PUT of the current data (no-op content change)
+    (async () => {
+        try {
+            const apiUrl = `/admin/api/data/${currentOrganism}/${currentDataType}`;
+            const resp = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: getAdminAuthHeaders(),
+                body: JSON.stringify({ data: currentData })
+            });
+            if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Backup failed: ${resp.status} ${text}`);
+            }
+
+            const json = await resp.json();
+            if (!json || !json.success) {
+                throw new Error(json && json.message ? json.message : 'Unknown server error');
+            }
+
+            showSuccessMessage('Server backup created successfully!');
+        } catch (err) {
+            console.error('Error creating server backup:', err);
+            alert('Failed to create backup: ' + err.message);
+        }
+    })();
 }
 
 // Admin Search Functions
