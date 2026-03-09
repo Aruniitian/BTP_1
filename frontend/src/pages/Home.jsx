@@ -63,8 +63,8 @@ export default function Home() {
     { label: 'Total Organisms', value: stats ? stats.download.organismsOnDisk : '—', icon: Microscope, color: 'from-teal-500 to-emerald-600' },
     { label: 'Total Files', value: stats ? stats.download.filesOnDisk.toLocaleString() : '—', icon: FolderOpen, color: 'from-blue-500 to-indigo-600' },
     { label: 'Total Records', value: totalRecords ? `${(totalRecords / 1e6).toFixed(1)}M` : '—', icon: Database, color: 'from-purple-500 to-violet-600' },
-    { label: 'Disk Usage', value: stats ? formatBytes(stats.download.sizeOnDisk) : '—', icon: HardDrive, color: 'from-amber-500 to-orange-600' },
-    { label: 'Data Types', value: '12', icon: Layers, color: 'from-rose-500 to-pink-600' },
+    { label: 'Disk Usage', value: stats ? formatBytes(stats.totalDiskUsage) : '—', icon: HardDrive, color: 'from-amber-500 to-orange-600' },
+    { label: 'Data Types', value: stats?.dataTypes ?? '—', icon: Layers, color: 'from-rose-500 to-pink-600' },
     { label: 'Release', value: stats?.release ?? '68', icon: BookOpen, color: 'from-cyan-500 to-sky-600' },
   ];
 

@@ -120,83 +120,24 @@
                     </button>
                 </div>
 
-                <div class="sidebar-section">
-                    <div class="sidebar-organism sidebar-collapsible-toggle" data-target="hist-items">
-                        <div class="sidebar-organism-badge hist">EH</div>
-                        <span class="sidebar-label"><em>E. histolytica</em></span>
+                <!-- All Organisms Section (includes all 43 organisms) -->
+                <div class="sidebar-section" style="margin-top:.5rem">
+                    <div style="height:1px;background:rgba(255,255,255,.07);margin:.5rem .75rem"></div>
+                    <div class="sidebar-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+                        <span class="sidebar-label">Browse Organisms</span>
+                    </div>
+                    <div class="sidebar-organism sidebar-collapsible-toggle collapsed" data-target="all-organisms-items">
+                        <div class="sidebar-organism-badge" style="background:linear-gradient(135deg,#475569,#334155);font-size:.6rem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        </div>
+                        <span class="sidebar-label" id="allOrgsCount">Loading…</span>
                         <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
                     </div>
-                    <div class="sidebar-collapsible open" id="hist-items">
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="transcriptomics">
-                            <span class="sidebar-dot dot-blue"></span>
-                            <span class="sidebar-label">Transcripts</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="protein">
-                            <span class="sidebar-dot dot-violet"></span>
-                            <span class="sidebar-label">Proteins</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="cds">
-                            <span class="sidebar-dot dot-orange"></span>
-                            <span class="sidebar-label">CDS</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="genome">
-                            <span class="sidebar-dot dot-emerald"></span>
-                            <span class="sidebar-label">Genome</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="codon-usage">
-                            <span class="sidebar-dot dot-amber"></span>
-                            <span class="sidebar-label">Codon Usage</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="gene-aliases">
-                            <span class="sidebar-dot dot-rose"></span>
-                            <span class="sidebar-label">Gene Aliases</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="orf">
-                            <span class="sidebar-dot dot-cyan"></span>
-                            <span class="sidebar-label">ORF</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="full-gff">
-                            <span class="sidebar-dot dot-slate"></span>
-                            <span class="sidebar-label">Full GFF</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-organism sidebar-collapsible-toggle" data-target="inv-items">
-                        <div class="sidebar-organism-badge inv">EI</div>
-                        <span class="sidebar-label"><em>E. invadens</em></span>
-                        <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
-                    </div>
-                    <div class="sidebar-collapsible open" id="inv-items">
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="transcriptomics">
-                            <span class="sidebar-dot dot-blue"></span>
-                            <span class="sidebar-label">Transcripts</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="protein">
-                            <span class="sidebar-dot dot-violet"></span>
-                            <span class="sidebar-label">Proteins</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="cds">
-                            <span class="sidebar-dot dot-orange"></span>
-                            <span class="sidebar-label">CDS</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="genome">
-                            <span class="sidebar-dot dot-emerald"></span>
-                            <span class="sidebar-label">Genome</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="codon-usage">
-                            <span class="sidebar-dot dot-amber"></span>
-                            <span class="sidebar-label">Codon Usage</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="gene-aliases">
-                            <span class="sidebar-dot dot-rose"></span>
-                            <span class="sidebar-label">Gene Aliases</span>
-                        </button>
-                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="full-gff">
-                            <span class="sidebar-dot dot-slate"></span>
-                            <span class="sidebar-label">Full GFF</span>
-                        </button>
+                    <div class="sidebar-collapsible" id="all-organisms-items">
+                        <div id="allOrganismsList" style="max-height:320px;overflow-y:auto;padding-right:2px">
+                            <div class="sidebar-btn" style="opacity:.5;font-size:.75rem;cursor:default">Loading organisms…</div>
+                        </div>
                     </div>
                 </div>
             </aside>

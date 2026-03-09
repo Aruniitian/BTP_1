@@ -27,5 +27,8 @@ server_out.log
 server_err.txt
 server_out.txt
 
+# Auto-generated backup files
+*_backup_*.json
+
 # IDE
 .vscode/

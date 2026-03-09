@@ -199,6 +199,7 @@ function showAdminPanel() {
     adminDashboard.style.display = 'flex';
     adminPanel.style.display = 'flex';
     showWelcomeScreen();
+    loadSidebarOrganisms();
 }
 
 function showLoginError(message) {
@@ -234,19 +235,19 @@ function showWelcomeScreen() {
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon teal">📊</div>
-                    <h3>Total Datasets</h3>
-                    <span id="totalDatasets">15</span>
+                    <div class="stat-icon teal">🧫</div>
+                    <h3>Organisms</h3>
+                    <span id="welcomeOrganisms">—</span>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon blue">🧬</div>
-                    <h3>E. histolytica</h3>
-                    <span id="histolyticaFiles">8</span>
+                    <div class="stat-icon blue">📁</div>
+                    <h3>Files on Disk</h3>
+                    <span id="welcomeFiles">—</span>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon violet">🔬</div>
-                    <h3>E. invadens</h3>
-                    <span id="invadensFiles">7</span>
+                    <div class="stat-icon violet">💾</div>
+                    <h3>Disk Usage</h3>
+                    <span id="welcomeDisk">—</span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon amber">📦</div>
@@ -255,28 +256,94 @@ function showWelcomeScreen() {
                 </div>
             </div>
             <div style="margin-top:1.5rem">
-                <h3 style="font-size:.85rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1rem;">Quick Actions</h3>
+                <h3 style="font-size:.85rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem;">Quick Actions</h3>
+
+                <!-- E. histolytica -->
+                <div style="font-size:.72rem;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:.5px;margin:.9rem 0 .45rem;display:flex;align-items:center;gap:.4rem;">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0d9488"></span>E. histolytica
+                </div>
                 <div class="quick-actions">
-                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=histolytica][data-type=transcriptomics]').click()">
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','transcriptomics')">
                         <div class="qa-icon" style="background:#dbeafe;color:#1d4ed8;">📝</div>
-                        <div><div class="qa-label">Manage Transcripts</div><div class="qa-desc">E. histolytica annotated transcripts</div></div>
+                        <div><div class="qa-label">Transcripts</div><div class="qa-desc">Annotated transcripts</div></div>
                     </div>
-                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=histolytica][data-type=protein]').click()">
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','protein')">
                         <div class="qa-icon" style="background:#ede9fe;color:#6d28d9;">🧪</div>
-                        <div><div class="qa-label">Manage Proteins</div><div class="qa-desc">E. histolytica protein sequences</div></div>
+                        <div><div class="qa-label">Proteins</div><div class="qa-desc">Protein sequences</div></div>
                     </div>
-                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=histolytica][data-type=genome]').click()">
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','cds')">
+                        <div class="qa-icon" style="background:#fce7f3;color:#be185d;">🔬</div>
+                        <div><div class="qa-label">CDS</div><div class="qa-desc">Coding sequences</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','genome')">
                         <div class="qa-icon" style="background:#d1fae5;color:#065f46;">🧬</div>
-                        <div><div class="qa-label">Manage Genome</div><div class="qa-desc">E. histolytica genome data</div></div>
+                        <div><div class="qa-label">Genome</div><div class="qa-desc">Genome sequences</div></div>
                     </div>
-                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=invadens][data-type=transcriptomics]').click()">
-                        <div class="qa-icon" style="background:#fef3c7;color:#92400e;">📋</div>
-                        <div><div class="qa-label">Invadens Transcripts</div><div class="qa-desc">E. invadens annotated transcripts</div></div>
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','codon-usage')">
+                        <div class="qa-icon" style="background:#fef3c7;color:#92400e;">📊</div>
+                        <div><div class="qa-label">Codon Usage</div><div class="qa-desc">Codon frequency table</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','gene-aliases')">
+                        <div class="qa-icon" style="background:#fee2e2;color:#991b1b;">🏷️</div>
+                        <div><div class="qa-label">Gene Aliases</div><div class="qa-desc">Gene name aliases</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','orf')">
+                        <div class="qa-icon" style="background:#e0f2fe;color:#0369a1;">🔭</div>
+                        <div><div class="qa-label">ORF</div><div class="qa-desc">Open reading frames</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('histolytica','full-gff')">
+                        <div class="qa-icon" style="background:#f1f5f9;color:#334155;">📋</div>
+                        <div><div class="qa-label">Full GFF</div><div class="qa-desc">Complete GFF annotation</div></div>
+                    </div>
+                </div>
+
+                <!-- E. invadens -->
+                <div style="font-size:.72rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin:.9rem 0 .45rem;display:flex;align-items:center;gap:.4rem;">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7c3aed"></span>E. invadens
+                </div>
+                <div class="quick-actions">
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','transcriptomics')">
+                        <div class="qa-icon" style="background:#dbeafe;color:#1d4ed8;">📝</div>
+                        <div><div class="qa-label">Transcripts</div><div class="qa-desc">Annotated transcripts</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','protein')">
+                        <div class="qa-icon" style="background:#ede9fe;color:#6d28d9;">🧪</div>
+                        <div><div class="qa-label">Proteins</div><div class="qa-desc">Protein sequences</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','cds')">
+                        <div class="qa-icon" style="background:#fce7f3;color:#be185d;">🔬</div>
+                        <div><div class="qa-label">CDS</div><div class="qa-desc">Coding sequences</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','genome')">
+                        <div class="qa-icon" style="background:#d1fae5;color:#065f46;">🧬</div>
+                        <div><div class="qa-label">Genome</div><div class="qa-desc">Genome sequences</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','codon-usage')">
+                        <div class="qa-icon" style="background:#fef3c7;color:#92400e;">📊</div>
+                        <div><div class="qa-label">Codon Usage</div><div class="qa-desc">Codon frequency table</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','gene-aliases')">
+                        <div class="qa-icon" style="background:#fee2e2;color:#991b1b;">🏷️</div>
+                        <div><div class="qa-label">Gene Aliases</div><div class="qa-desc">Gene name aliases</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="loadDataManagement('invadens','full-gff')">
+                        <div class="qa-icon" style="background:#f1f5f9;color:#334155;">📋</div>
+                        <div><div class="qa-label">Full GFF</div><div class="qa-desc">Complete GFF annotation</div></div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+
+    // Populate welcome stats from live /api/stats (no auth needed)
+    fetch('/api/stats').then(r => r.json()).then(s => {
+        if (!s.success) return;
+        const fmtB = (b) => b > 1e9 ? (b/1e9).toFixed(1)+' GB' : b > 1e6 ? (b/1e6).toFixed(1)+' MB' : b > 1e3 ? (b/1e3).toFixed(1)+' KB' : b+' B';
+        const el = (id) => document.getElementById(id);
+        if (el('welcomeOrganisms')) el('welcomeOrganisms').textContent = s.download.organismsOnDisk;
+        if (el('welcomeFiles'))     el('welcomeFiles').textContent     = s.download.filesOnDisk.toLocaleString();
+        if (el('welcomeDisk'))      el('welcomeDisk').textContent      = fmtB(s.totalDiskUsage);
+    }).catch(() => {});
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -407,7 +474,10 @@ async function updateDownloadUI() {
     setNum('dlStatPending', state.phase === 'idle' ? '—' : pendingOrgs);
     setNum('dlStatFailed', state.failed);
     setNum('dlStatTotal', state.totalFiles || '—');
-    setNum('dlStatDisk', `${disk.folders.length} folders / ${fmtBytes(disk.totalSize)}`);
+    // Filter out single-file organisms to match the main site count
+    const filteredFolders = disk.folders.filter(f => f.files > 1);
+    const filteredSize = filteredFolders.reduce((s, f) => s + f.size, 0);
+    setNum('dlStatDisk', `${filteredFolders.length} folders / ${fmtBytes(filteredSize)}`);
 
     // Progress bar
     const pBar = document.getElementById('dlProgressBar');
@@ -447,10 +517,10 @@ async function updateDownloadUI() {
         }).join('\n');
         logEl.scrollTop = logEl.scrollHeight;
     } else if (logEl && state.phase === 'idle') {
-        // Show disk info in log area
-        logEl.innerHTML = disk.folders.length > 0
-            ? `<span class="log-info">On disk: ${disk.folders.length} organism folders (${fmtBytes(disk.totalSize)})</span>\n` +
-              disk.folders.map(f => `<span class="log-ok">  ${f.name}: ${f.files} files (${fmtBytes(f.size)})</span>`).join('\n')
+        // Show disk info in log area (use same filtered set as stats card)
+        logEl.innerHTML = filteredFolders.length > 0
+            ? `<span class="log-info">On disk: ${filteredFolders.length} organism folders (${fmtBytes(filteredSize)})</span>\n` +
+              filteredFolders.map(f => `<span class="log-ok">  ${f.name}: ${f.files} files (${fmtBytes(f.size)})</span>`).join('\n')
             : '<span class="log-info">No files downloaded yet. Click "Start Download" to begin.</span>';
     }
 }
@@ -1327,3 +1397,43 @@ function clearAdminSearch() {
 
 // beforeunload warning removed — it was incorrectly firing whenever any
 // data was loaded (not just when there were actual unsaved changes).
+
+// ── Sidebar: All Organisms ────────────────────────────────────────────────────
+async function loadSidebarOrganisms() {
+    const container = document.getElementById('allOrganismsList');
+    const countEl = document.getElementById('allOrgsCount');
+    if (!container) return;
+    try {
+        const resp = await fetch('/api/organisms');
+        const data = await resp.json();
+        if (!data.success) return;
+
+        // Show all organisms (curated ones show with a special badge)
+        const others = data.organisms;
+
+        if (countEl) countEl.textContent = `${others.length} organisms`;
+
+        container.innerHTML = others.map(org => {
+            const initials = org.shortName
+                ? org.shortName.replace(/[^A-Z]/g, '').slice(0, 2) || org.name.slice(0, 2).toUpperCase()
+                : org.name.slice(0, 2).toUpperCase();
+            const hue = Math.abs(org.key.split('').reduce((h, c) => h * 31 + c.charCodeAt(0), 0)) % 360;
+            return `<a class="sidebar-btn" href="/organisms?selected=${escapeHtml(org.key)}" target="_blank"
+                style="text-decoration:none;padding:.4rem .75rem .4rem .85rem"
+                title="${escapeHtml(org.name)}">
+                <span style="width:22px;height:22px;border-radius:6px;background:hsl(${hue},45%,38%);
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:.58rem;font-weight:800;color:#fff;flex-shrink:0">${initials}</span>
+                <span class="sidebar-label" style="font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(org.name)}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    width="10" height="10" style="margin-left:auto;opacity:.35;flex-shrink:0">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+            </a>`;
+        }).join('');
+    } catch (e) {
+        console.error('Failed to load sidebar organisms:', e);
+        if (container) container.innerHTML = '<div class="sidebar-btn" style="opacity:.4;font-size:.75rem;cursor:default">Failed to load</div>';
+    }
+}

@@ -1549,13 +1549,19 @@ app.get('/api/organisms', (req, res) => {
 
         // 2) Also include curated organisms from public/Data/ that may not yet be
         //    in the download directory (so they are always visible).
+        // Map curated folder names to their downloaded organism directory names
+        const CURATED_TO_DOWNLOAD = {
+            'Entamoeba Histolytica': 'EhistolyticaHM1IMSS',
+            'Entamoeba Invadens': 'EinvadensIP1',
+        };
         const curatedDir = path.join(__dirname, 'public', 'Data');
         if (fs.existsSync(curatedDir)) {
             const curatedItems = fs.readdirSync(curatedDir, { withFileTypes: true });
             for (const ci of curatedItems) {
                 if (!ci.isDirectory()) continue;
-                // Check if already present
-                const existingIdx = organisms.findIndex(o => o.dir === ci.name);
+                // Check if already present (by dir name or via mapping)
+                const mappedDir = CURATED_TO_DOWNLOAD[ci.name];
+                const existingIdx = organisms.findIndex(o => o.dir === ci.name || o.dir === mappedDir);
                 const jsonFiles = fs.readdirSync(path.join(curatedDir, ci.name))
                     .filter(f => f.endsWith('.json'));
                 const curatedInfo = {
@@ -1582,14 +1588,19 @@ app.get('/api/organisms', (req, res) => {
             }
         }
 
+        // Filter out species-level and family-level entries that only have 1 file
+        // (e.g. Ehistolytica with just ESTs.fasta, or Entamoebidae with just Isolates.fasta)
+        // since their full strain counterparts already have comprehensive data
+        const filtered = organisms.filter(o => o.totalFiles > 1 || o.curated);
+
         // Sort: curated first, then by name
-        organisms.sort((a, b) => {
+        filtered.sort((a, b) => {
             if (a.curated && !b.curated) return -1;
             if (!a.curated && b.curated) return 1;
             return a.name.localeCompare(b.name);
         });
 
-        res.json({ success: true, organisms, count: organisms.length });
+        res.json({ success: true, organisms: filtered, count: filtered.length });
     } catch (err) {
         console.error('Error in /api/organisms:', err);
         res.status(500).json({ success: false, error: 'Failed to list organisms' });
@@ -1600,10 +1611,41 @@ app.get('/api/stats', (req, res) => {
     try {
         const disk = getDiskStatus();
 
+        // Filter out single-file organisms (species/family-level with only ESTs or Isolates)
+        const filteredFolders = disk.folders.filter(f => f.files > 1);
+        const filteredFiles = filteredFolders.reduce((sum, f) => sum + f.files, 0);
+        const filteredSize = filteredFolders.reduce((sum, f) => sum + f.size, 0);
+
+        // Count distinct data types across all filtered organisms
+        const dataTypePatterns = [
+            /AnnotatedCDSs/, /AnnotatedProteins/, /AnnotatedTranscripts/, /Genome\.fasta/,
+            /Curated_GO/, /(?<!Curated_)GO\.gaf/, /\.gff$/i, /Orf50/,
+            /CodonUsage/, /GeneAliases/, /Nucleotide\.xml/, /Protein\.xml/,
+            /events\.tab/,
+        ];
+        const dataTypesSet = new Set();
+        for (const folder of filteredFolders) {
+            const folderPath = path.join(DL_OUT_DIR, folder.name);
+            const allFiles = [];
+            const walk = (dir) => {
+                for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+                    if (e.isDirectory()) walk(path.join(dir, e.name));
+                    else allFiles.push(e.name);
+                }
+            };
+            walk(folderPath);
+            for (const fname of allFiles) {
+                for (let i = 0; i < dataTypePatterns.length; i++) {
+                    if (dataTypePatterns[i].test(fname)) { dataTypesSet.add(i); break; }
+                }
+            }
+        }
+
         // Count JSON files already available for the curated organisms in public/Data
         const curatedDir = path.join(__dirname, 'public', 'Data');
         let curatedOrganisms = 0;
         let curatedFiles = 0;
+        let curatedDirSize = 0;
         if (fs.existsSync(curatedDir)) {
             const orgDirs = fs.readdirSync(curatedDir, { withFileTypes: true });
             for (const d of orgDirs) {
@@ -1613,7 +1655,32 @@ app.get('/api/stats', (req, res) => {
                     curatedFiles += files.filter(f => f.endsWith('.json')).length;
                 }
             }
+            // Sum total size of public/Data
+            const walkCurated = (dir) => {
+                for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+                    const fp = path.join(dir, e.name);
+                    if (e.isDirectory()) walkCurated(fp);
+                    else curatedDirSize += fs.statSync(fp).size;
+                }
+            };
+            walkCurated(curatedDir);
         }
+
+        // Compute AmoebaDB_JSON directory size (pre-processed search/browse index)
+        let jsonDirSize = 0;
+        if (fs.existsSync(JSON_DIR)) {
+            const walkJson = (dir) => {
+                for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+                    const fp = path.join(dir, e.name);
+                    if (e.isDirectory()) walkJson(fp);
+                    else jsonDirSize += fs.statSync(fp).size;
+                }
+            };
+            walkJson(JSON_DIR);
+        }
+
+        // True total disk usage = Release68 (filtered) + JSON index + curated JSON
+        const totalDiskUsage = filteredSize + jsonDirSize + curatedDirSize;
 
         // Download progress info (safe subset — no auth needed)
         const dlProgress = {
@@ -1636,11 +1703,13 @@ app.get('/api/stats', (req, res) => {
                 jsonFiles: curatedFiles,
             },
             download: {
-                organismsOnDisk: disk.folders.length,
-                filesOnDisk: disk.totalFiles,
-                sizeOnDisk: disk.totalSize,
+                organismsOnDisk: filteredFolders.length,
+                filesOnDisk: filteredFiles,
+                sizeOnDisk: filteredSize,
                 progress: dlProgress,
             },
+            totalDiskUsage,          // sum of all data dirs: Release68 + JSON index + curated
+            dataTypes: dataTypesSet.size,
             release: 68,
             source: 'VEuPathDB',
         });
