@@ -1,1 +1,31 @@
 ﻿public/Data/Entamoeba Invadens/AmoebaDB-68_EinvadensIP1_Orf50.json
+
+# Security: never commit credentials
+.env
+
+# Dependencies
+node_modules/
+
+# Large data directories (too big for Git)
+AmoebaDB_JSON/
+AmoebaDB_Release68/
+
+# Build output
+frontend/dist/
+
+# Debug / temp files
+_debug_*.js
+_debug_*.txt
+_test_*.json
+_test_*.txt
+_build_output.txt
+_count_skipped.js
+
+# Server logs
+server_err.log
+server_out.log
+server_err.txt
+server_out.txt
+
+# IDE
+.vscode/

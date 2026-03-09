@@ -1,10 +1,7 @@
 // Admin Panel JavaScript
 
-// Admin credentials (In production, this should be handled server-side)
-const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'amoeba2024'
-};
+// Fix #1, #8: Credentials are now validated server-side only.
+// No credentials stored in client-side code.
 
 // Current session state
 let isLoggedIn = false;
@@ -34,6 +31,42 @@ function setupEventListeners() {
     // Logout button
     logoutBtn.addEventListener('click', handleLogout);
     
+    // Sidebar toggle (collapsible)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const dashSidebar = document.getElementById('dashSidebar');
+    if (sidebarToggle && dashSidebar) {
+        // Restore collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            dashSidebar.classList.add('collapsed');
+        }
+        sidebarToggle.addEventListener('click', () => {
+            dashSidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', dashSidebar.classList.contains('collapsed'));
+        });
+    }
+
+    // Collapsible organism sections
+    document.querySelectorAll('.sidebar-collapsible-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const targetId = toggle.getAttribute('data-target');
+            const target = document.getElementById(targetId);
+            if (target) {
+                target.classList.toggle('open');
+                toggle.classList.toggle('collapsed');
+            }
+        });
+    });
+
+    // Download Manager button
+    const dlManagerBtn = document.getElementById('downloadManagerBtn');
+    if (dlManagerBtn) {
+        dlManagerBtn.addEventListener('click', () => {
+            document.querySelectorAll('.data-btn').forEach(b => b.classList.remove('active'));
+            dlManagerBtn.classList.add('active');
+            showDownloadManager();
+        });
+    }
+
     // Data management buttons
     const dataButtons = document.querySelectorAll('.data-btn');
     dataButtons.forEach(btn => {
@@ -44,6 +77,7 @@ function setupEventListeners() {
             
             // Update active button
             dataButtons.forEach(b => b.classList.remove('active'));
+            if (dlManagerBtn) dlManagerBtn.classList.remove('active');
             this.classList.add('active');
         });
     });
@@ -70,44 +104,78 @@ function setupEventListeners() {
     }
 }
 
-// Helper: build auth headers for admin API calls
+// Helper: build auth headers using server-issued session token (Fix #8)
 function getAdminAuthHeaders() {
+    const token = sessionStorage.getItem('adminToken');
     return {
-        'Authorization': 'Bearer admin:amoeba2024',
+        'Authorization': `Bearer ${token || ''}`,
         'Content-Type': 'application/json'
     };
 }
 
-function checkAuthStatus() {
-    // Check if admin is already logged in (session storage)
-    const adminSession = sessionStorage.getItem('adminLoggedIn');
-    if (adminSession === 'true') {
-        showAdminPanel();
-    } else {
+async function checkAuthStatus() {
+    // Fix #8: Validate session token with server instead of trusting client storage
+    const token = sessionStorage.getItem('adminToken');
+    if (!token) {
+        showLoginModal();
+        return;
+    }
+    try {
+        const resp = await fetch('/admin/api/session', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (resp.ok) {
+            showAdminPanel();
+        } else {
+            sessionStorage.removeItem('adminToken');
+            showLoginModal();
+        }
+    } catch (err) {
         showLoginModal();
     }
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    // Validate credentials
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-        isLoggedIn = true;
-        sessionStorage.setItem('adminLoggedIn', 'true');
-        hideLoginError();
-        showAdminPanel();
-    } else {
-        showLoginError('Invalid username or password');
+    // Fix #8: Validate credentials server-side via login API
+    try {
+        const resp = await fetch('/admin/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await resp.json();
+        
+        if (resp.ok && data.success && data.token) {
+            isLoggedIn = true;
+            sessionStorage.setItem('adminToken', data.token);
+            hideLoginError();
+            showAdminPanel();
+        } else {
+            showLoginError(data.error || 'Invalid username or password');
+        }
+    } catch (err) {
+        showLoginError('Login failed. Please check your connection.');
     }
 }
 
-function handleLogout() {
+async function handleLogout() {
+    // Fix #8: Invalidate session on server
+    const token = sessionStorage.getItem('adminToken');
+    if (token) {
+        try {
+            await fetch('/admin/api/logout', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (err) { /* ignore logout errors */ }
+    }
     isLoggedIn = false;
-    sessionStorage.removeItem('adminLoggedIn');
+    sessionStorage.removeItem('adminToken');
     showLoginModal();
     resetAdminPanel();
 }
@@ -123,10 +191,13 @@ function showLoginModal() {
     hideLoginError();
 }
 
+// Alias for backward compatibility
+const loginScreen = loginModal;
+
 function showAdminPanel() {
     loginModal.style.display = 'none';
-    adminPanel.style.display = 'flex';
     adminDashboard.style.display = 'flex';
+    adminPanel.style.display = 'flex';
     showWelcomeScreen();
 }
 
@@ -154,24 +225,326 @@ function resetAdminPanel() {
 function showWelcomeScreen() {
     adminContent.innerHTML = `
         <div class="welcome-section">
-            <h2>Welcome to Admin Panel</h2>
-            <p>Select a data type from the sidebar to manage the data.</p>
+            <div class="welcome-header">
+                <div class="welcome-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h2>Welcome to Admin Dashboard</h2>
+                <p>Select a dataset from the sidebar to view, edit, or manage genomic records.</p>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
+                    <div class="stat-icon teal">📊</div>
                     <h3>Total Datasets</h3>
-                        <span id="totalDatasets">15</span>
+                    <span id="totalDatasets">15</span>
                 </div>
                 <div class="stat-card">
-                    <h3>Histolytica Files</h3>
-                        <span id="histolyticaFiles">8</span>
+                    <div class="stat-icon blue">🧬</div>
+                    <h3>E. histolytica</h3>
+                    <span id="histolyticaFiles">8</span>
                 </div>
                 <div class="stat-card">
-                    <h3>Invadens Files</h3>
+                    <div class="stat-icon violet">🔬</div>
+                    <h3>E. invadens</h3>
                     <span id="invadensFiles">7</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">📦</div>
+                    <h3>Release</h3>
+                    <span>68</span>
+                </div>
+            </div>
+            <div style="margin-top:1.5rem">
+                <h3 style="font-size:.85rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1rem;">Quick Actions</h3>
+                <div class="quick-actions">
+                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=histolytica][data-type=transcriptomics]').click()">
+                        <div class="qa-icon" style="background:#dbeafe;color:#1d4ed8;">📝</div>
+                        <div><div class="qa-label">Manage Transcripts</div><div class="qa-desc">E. histolytica annotated transcripts</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=histolytica][data-type=protein]').click()">
+                        <div class="qa-icon" style="background:#ede9fe;color:#6d28d9;">🧪</div>
+                        <div><div class="qa-label">Manage Proteins</div><div class="qa-desc">E. histolytica protein sequences</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=histolytica][data-type=genome]').click()">
+                        <div class="qa-icon" style="background:#d1fae5;color:#065f46;">🧬</div>
+                        <div><div class="qa-label">Manage Genome</div><div class="qa-desc">E. histolytica genome data</div></div>
+                    </div>
+                    <div class="quick-action-card" onclick="document.querySelector('[data-organism=invadens][data-type=transcriptomics]').click()">
+                        <div class="qa-icon" style="background:#fef3c7;color:#92400e;">📋</div>
+                        <div><div class="qa-label">Invadens Transcripts</div><div class="qa-desc">E. invadens annotated transcripts</div></div>
+                    </div>
                 </div>
             </div>
         </div>
     `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DOWNLOAD MANAGER
+// ═══════════════════════════════════════════════════════════════════════════════
+let dlPollTimer = null;
+let dlCurrentFilter = 'all';
+
+function fmtBytes(bytes) {
+    if (bytes > 1e9) return (bytes / 1e9).toFixed(1) + ' GB';
+    if (bytes > 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
+    if (bytes > 1e3) return (bytes / 1e3).toFixed(1) + ' KB';
+    return bytes + ' B';
+}
+
+function fmtElapsed(ms) {
+    const sec = Math.floor(ms / 1000);
+    const min = Math.floor(sec / 60);
+    const hrs = Math.floor(min / 60);
+    if (hrs > 0) return `${hrs}h ${min % 60}m`;
+    if (min > 0) return `${min}m ${sec % 60}s`;
+    return `${sec}s`;
+}
+
+async function fetchDlStatus() {
+    try {
+        const resp = await fetch('/admin/api/download/status', { headers: getAdminAuthHeaders() });
+        if (!resp.ok) return null;
+        return await resp.json();
+    } catch { return null; }
+}
+
+function showDownloadManager() {
+    // Stop existing polling
+    if (dlPollTimer) { clearInterval(dlPollTimer); dlPollTimer = null; }
+
+    adminContent.innerHTML = `
+        <div class="dl-manager">
+            <div class="dl-header-bar">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Manager
+                </h2>
+                <span id="dlPhaseLabel" style="font-size:.8rem;font-weight:600;color:#64748b;">Loading…</span>
+            </div>
+
+            <div class="dl-stats-row" id="dlStatsRow">
+                <div class="dl-stat dl-stat-green"><div class="dl-stat-num" id="dlStatDone">—</div><div class="dl-stat-label">Completed</div></div>
+                <div class="dl-stat dl-stat-blue"><div class="dl-stat-num" id="dlStatActive">—</div><div class="dl-stat-label">Downloading</div></div>
+                <div class="dl-stat dl-stat-amber"><div class="dl-stat-num" id="dlStatPending">—</div><div class="dl-stat-label">Pending</div></div>
+                <div class="dl-stat dl-stat-red"><div class="dl-stat-num" id="dlStatFailed">—</div><div class="dl-stat-label">Failed</div></div>
+                <div class="dl-stat"><div class="dl-stat-num" id="dlStatTotal">—</div><div class="dl-stat-label">Total Files</div></div>
+                <div class="dl-stat"><div class="dl-stat-num" id="dlStatDisk">—</div><div class="dl-stat-label">On Disk</div></div>
+            </div>
+
+            <div class="dl-progress-wrap"><div class="dl-progress-bar" id="dlProgressBar" style="width:0%"></div></div>
+
+            <div class="dl-actions" id="dlActions">
+                <button class="dl-btn dl-btn-primary" id="dlStartBtn" onclick="startDownload()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Start Download
+                </button>
+                <button class="dl-btn dl-btn-danger" id="dlStopBtn" onclick="stopDownload()" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                    Stop
+                </button>
+                <button class="dl-btn dl-btn-secondary" onclick="showDownloadManager()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    Refresh
+                </button>
+            </div>
+
+            <div class="dl-filters" id="dlFilters">
+                <button class="dl-filter-btn active" onclick="filterOrganisms('all')">All</button>
+                <button class="dl-filter-btn" onclick="filterOrganisms('done')">✔ Done</button>
+                <button class="dl-filter-btn" onclick="filterOrganisms('downloading')">⬇ Active</button>
+                <button class="dl-filter-btn" onclick="filterOrganisms('pending')">◌ Pending</button>
+                <button class="dl-filter-btn" onclick="filterOrganisms('error')">✖ Failed</button>
+            </div>
+
+            <div class="dl-grid" id="dlGrid">
+                <div style="grid-column:1/-1;text-align:center;padding:2rem;color:#94a3b8;">Loading organism data…</div>
+            </div>
+
+            <div class="dl-log" id="dlLog">Waiting for data…</div>
+        </div>
+    `;
+
+    // Initial fetch + start polling
+    updateDownloadUI();
+    dlPollTimer = setInterval(updateDownloadUI, 3000);
+}
+
+async function updateDownloadUI() {
+    const resp = await fetchDlStatus();
+    if (!resp || !resp.success) return;
+
+    const { state, disk, logs } = resp;
+
+    // Phase label
+    const phaseEl = document.getElementById('dlPhaseLabel');
+    if (phaseEl) {
+        const labels = {
+            idle: '● Idle — Ready to start',
+            discovering: '◉ Discovering files…',
+            downloading: '⬇ Downloading…',
+            done: '✔ Complete',
+            error: '✖ Error',
+            stopped: '⏸ Stopped'
+        };
+        let label = labels[state.phase] || state.phase;
+        if (state.startedAt && (state.phase === 'downloading' || state.phase === 'discovering')) {
+            label += ` (${fmtElapsed(Date.now() - state.startedAt)})`;
+        }
+        phaseEl.textContent = label;
+    }
+
+    // Stats
+    const orgs = state.organisms || [];
+    const doneOrgs = orgs.filter(o => o.status === 'done' || o.status === 'partial').length;
+    const activeOrgs = orgs.filter(o => o.status === 'downloading' || o.status === 'discovering').length;
+    const pendingOrgs = orgs.filter(o => o.status === 'pending').length;
+    const errorOrgs = orgs.filter(o => o.status === 'partial').length;
+
+    const setNum = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setNum('dlStatDone', state.phase === 'idle' ? disk.folders.length : (state.completed - state.failed));
+    setNum('dlStatActive', activeOrgs);
+    setNum('dlStatPending', state.phase === 'idle' ? '—' : pendingOrgs);
+    setNum('dlStatFailed', state.failed);
+    setNum('dlStatTotal', state.totalFiles || '—');
+    setNum('dlStatDisk', `${disk.folders.length} folders / ${fmtBytes(disk.totalSize)}`);
+
+    // Progress bar
+    const pBar = document.getElementById('dlProgressBar');
+    if (pBar && state.totalFiles > 0) {
+        const pct = Math.round((state.completed / state.totalFiles) * 100);
+        pBar.style.width = pct + '%';
+        pBar.classList.toggle('active', state.running);
+    }
+
+    // Buttons
+    const startBtn = document.getElementById('dlStartBtn');
+    const stopBtn = document.getElementById('dlStopBtn');
+    if (startBtn) startBtn.disabled = state.running;
+    if (stopBtn) stopBtn.disabled = !state.running;
+
+    // Update sidebar badge
+    const badge = document.getElementById('dlBadge');
+    if (badge) {
+        if (state.running && state.totalFiles > 0) {
+            badge.style.display = 'inline';
+            badge.textContent = Math.round((state.completed / state.totalFiles) * 100) + '%';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Organism grid
+    renderOrganismGrid(orgs, disk);
+
+    // Logs
+    const logEl = document.getElementById('dlLog');
+    if (logEl && logs && logs.length > 0) {
+        logEl.innerHTML = logs.map(l => {
+            const cls = l.level === 'ok' ? 'log-ok' : l.level === 'err' ? 'log-err' : l.level === 'warn' ? 'log-warn' : 'log-info';
+            const time = l.time ? l.time.split('T')[1]?.split('.')[0] || '' : '';
+            return `<span class="${cls}">[${time}] ${escapeHtml(l.msg)}</span>`;
+        }).join('\n');
+        logEl.scrollTop = logEl.scrollHeight;
+    } else if (logEl && state.phase === 'idle') {
+        // Show disk info in log area
+        logEl.innerHTML = disk.folders.length > 0
+            ? `<span class="log-info">On disk: ${disk.folders.length} organism folders (${fmtBytes(disk.totalSize)})</span>\n` +
+              disk.folders.map(f => `<span class="log-ok">  ${f.name}: ${f.files} files (${fmtBytes(f.size)})</span>`).join('\n')
+            : '<span class="log-info">No files downloaded yet. Click "Start Download" to begin.</span>';
+    }
+}
+
+function renderOrganismGrid(orgs, disk) {
+    const grid = document.getElementById('dlGrid');
+    if (!grid) return;
+
+    // Merge live state with disk info
+    let items = [];
+    if (orgs && orgs.length > 0) {
+        items = orgs;
+    } else if (disk && disk.folders.length > 0) {
+        items = disk.folders.map(f => ({ name: f.name, status: 'done', fileCount: f.files, completedFiles: f.files, failedFiles: 0 }));
+    }
+
+    if (items.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#94a3b8;">No organisms discovered yet. Start a download to scan AmoebaDB.</div>';
+        return;
+    }
+
+    // Apply filter
+    let filtered = items;
+    if (dlCurrentFilter === 'done') filtered = items.filter(o => o.status === 'done' || o.status === 'partial');
+    else if (dlCurrentFilter === 'downloading') filtered = items.filter(o => o.status === 'downloading' || o.status === 'discovering');
+    else if (dlCurrentFilter === 'pending') filtered = items.filter(o => o.status === 'pending');
+    else if (dlCurrentFilter === 'error') filtered = items.filter(o => o.status === 'partial' && o.failedFiles > 0);
+
+    grid.innerHTML = filtered.map(o => {
+        let iconClass = 'pending', statusClass = 'pending', statusText = 'Pending', icon = '◌';
+        if (o.status === 'done') { iconClass = 'done'; statusClass = 'done'; statusText = 'Done'; icon = '✔'; }
+        else if (o.status === 'downloading' || o.status === 'discovering') { iconClass = 'active'; statusClass = 'active'; statusText = o.status === 'discovering' ? 'Scanning…' : 'Downloading'; icon = '⬇'; }
+        else if (o.status === 'partial') { iconClass = 'error'; statusClass = 'error'; statusText = 'Partial'; icon = '⚠'; }
+        else if (o.status === 'error') { iconClass = 'error'; statusClass = 'error'; statusText = 'Error'; icon = '✖'; }
+        const meta = o.fileCount ? `${o.completedFiles || 0}/${o.fileCount} files` : '';
+        return `
+            <div class="dl-card">
+                <div class="dl-card-icon ${iconClass}">${icon}</div>
+                <div class="dl-card-info">
+                    <div class="dl-card-name">${escapeHtml(o.name)}</div>
+                    <div class="dl-card-meta">${meta}</div>
+                </div>
+                <span class="dl-card-status ${statusClass}">${statusText}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterOrganisms(filter) {
+    dlCurrentFilter = filter;
+    document.querySelectorAll('.dl-filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    // Re-render with current data
+    updateDownloadUI();
+}
+
+async function startDownload() {
+    try {
+        const resp = await fetch('/admin/api/download/start', {
+            method: 'POST',
+            headers: getAdminAuthHeaders()
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+            alert(data.error || 'Failed to start download');
+            return;
+        }
+        // Immediately refresh
+        updateDownloadUI();
+    } catch (err) {
+        alert('Failed to start download: ' + err.message);
+    }
+}
+
+async function stopDownload() {
+    try {
+        const resp = await fetch('/admin/api/download/stop', {
+            method: 'POST',
+            headers: getAdminAuthHeaders()
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+            alert(data.error || 'Failed to stop download');
+        }
+        updateDownloadUI();
+    } catch (err) {
+        alert('Failed to stop download: ' + err.message);
+    }
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
 }
 
 async function loadDataManagement(organism, dataType) {
@@ -952,11 +1325,5 @@ function clearAdminSearch() {
     }
 }
 
-// Warning message for data modifications
-window.addEventListener('beforeunload', function(e) {
-    if (currentData && currentData.length > 0) {
-        const message = 'You have unsaved changes. Are you sure you want to leave?';
-        e.returnValue = message;
-        return message;
-    }
-});
+// beforeunload warning removed — it was incorrectly firing whenever any
+// data was loaded (not just when there were actual unsaved changes).

@@ -3,99 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Amoeba Database</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin-style.css">
+    <title>Admin Panel — AmoebaDB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin-style.css">
 </head>
 <body>
-    <!-- Admin Login Modal -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <h2>Admin Login</h2>
-            <form id="adminLoginForm">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
+    <!-- ========== LOGIN SCREEN ========== -->
+    <div id="loginModal" class="login-screen">
+        <div class="login-bg">
+            <div class="login-blob login-blob-1"></div>
+            <div class="login-blob login-blob-2"></div>
+            <div class="login-blob login-blob-3"></div>
+        </div>
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
                 </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
+                <h1>AmoebaDB</h1>
+                <span class="login-badge">Admin Panel</span>
+            </div>
+            <p class="login-subtitle">Sign in to manage genomic datasets</p>
+            <form id="adminLoginForm" autocomplete="off">
+                <div class="login-field">
+                    <label for="username">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required autocomplete="off">
                 </div>
-                <button type="submit" class="login-btn">Login</button>
-                <div id="loginError" class="error-message" style="display: none;"></div>
+                <div class="login-field">
+                    <label for="password">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        Password
+                    </label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="off">
+                        <button type="button" class="toggle-pw" onclick="togglePassword()">
+                            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="loginError" class="login-error" style="display:none;"></div>
+                <button type="submit" class="login-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Sign In
+                </button>
             </form>
+            <div class="login-footer">
+                <a href="/">← Back to main site</a>
+            </div>
         </div>
     </div>
 
-    <!-- Admin Panel Header -->
-    <header class="admin-header" id="adminPanel" style="display: none;">
-        <div class="admin-logo">Amoeba Database - Admin Panel</div>
-        <div class="admin-header-right">
-            <div class="admin-search-container">
-                <input type="text" id="adminSearchInput" placeholder="Search by ID..." />
-                <button id="adminSearchBtn">Search</button>
-                <button id="adminClearSearchBtn" style="display: none;">Clear</button>
-            </div>
-            <div class="admin-nav">
-                <button id="logoutBtn" class="logout-btn">Logout</button>
-                <a href="index.html" class="back-to-site">Back to Site</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- Admin Dashboard -->
-    <div class="admin-container" id="adminDashboard" style="display: none;">
-        <aside class="admin-sidebar">
-            <div class="admin-menu">
-                <h3>Data Management</h3>
-                <div class="organism-section">
-                    <h4>Entamoeba Histolytica</h4>
-                    <button class="data-btn" data-organism="histolytica" data-type="transcriptomics">Transcripts</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="protein">Protein Sequence</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="cds">CDS</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="genome">Genome</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="codon-usage">Codon usage</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="gene-aliases">Gene aliases</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="orf">ORF</button>
-                    <button class="data-btn" data-organism="histolytica" data-type="full-gff">Full GFF</button>
-                </div>
-                <div class="organism-section">
-                    <h4>Entamoeba Invadens</h4>
-                    <button class="data-btn" data-organism="invadens" data-type="transcriptomics">transcripts</button>
-                    <button class="data-btn" data-organism="invadens" data-type="protein">Protein Sequence</button>
-                    <button class="data-btn" data-organism="invadens" data-type="cds">CDS Data</button>
-                    <button class="data-btn" data-organism="invadens" data-type="genome">Genome Data</button>
-                    <button class="data-btn" data-organism="invadens" data-type="codon-usage">Codon Usage</button>
-                    <button class="data-btn" data-organism="invadens" data-type="gene-aliases">Gene Aliases</button>
-                    <button class="data-btn" data-organism="invadens" data-type="full-gff">Full GFF</button>
-                </div>
-            </div>
-        </aside>
-
-        <main class="admin-main">
-            <div id="adminContent">
-                <div class="welcome-section">
-                    <h2>Welcome to Admin Panel</h2>
-                    <p>Select a data type from the sidebar to manage the data.</p>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>Total Datasets</h3>
-                                <span id="totalDatasets">15</span>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Histolytica Files</h3>
-                                <span id="histolyticaFiles">8</span>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Invadens Files</h3>
-                            <span id="invadensFiles">7</span>
-                        </div>
+    <!-- ========== ADMIN DASHBOARD ========== -->
+    <div id="adminDashboard" class="dashboard" style="display:none;">
+        <!-- Top Navigation -->
+        <header class="dash-header" id="adminPanel" style="display:none;">
+            <div class="dash-header-left">
+                <div class="dash-logo">
+                    <div class="dash-logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>AmoebaDB</h1>
+                        <span>Admin Dashboard</span>
                     </div>
                 </div>
             </div>
-        </main>
+            <div class="dash-header-right">
+                <div class="dash-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="adminSearchInput" placeholder="Search by ID or keyword…">
+                    <button id="adminSearchBtn" class="dash-search-btn" title="Search">Go</button>
+                    <button id="adminClearSearchBtn" class="dash-search-clear" style="display:none;" title="Clear search">✕</button>
+                </div>
+                <div class="dash-header-actions">
+                    <a href="/" class="dash-btn dash-btn-ghost" title="Back to main site">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Site
+                    </a>
+                    <button id="logoutBtn" class="dash-btn dash-btn-danger" title="Sign out">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="dash-body">
+            <!-- Sidebar -->
+            <aside class="dash-sidebar" id="dashSidebar">
+                <button class="sidebar-toggle" id="sidebarToggle" title="Collapse sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        <span class="sidebar-label">Data Management</span>
+                    </div>
+                </div>
+
+                <!-- Download Manager Nav -->
+                <div class="sidebar-section">
+                    <button class="sidebar-btn sidebar-btn-special" id="downloadManagerBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span class="sidebar-label">Download Manager</span>
+                        <span class="sidebar-badge" id="dlBadge" style="display:none;">0</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-organism sidebar-collapsible-toggle" data-target="hist-items">
+                        <div class="sidebar-organism-badge hist">EH</div>
+                        <span class="sidebar-label"><em>E. histolytica</em></span>
+                        <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+                    <div class="sidebar-collapsible open" id="hist-items">
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="transcriptomics">
+                            <span class="sidebar-dot dot-blue"></span>
+                            <span class="sidebar-label">Transcripts</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="protein">
+                            <span class="sidebar-dot dot-violet"></span>
+                            <span class="sidebar-label">Proteins</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="cds">
+                            <span class="sidebar-dot dot-orange"></span>
+                            <span class="sidebar-label">CDS</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="genome">
+                            <span class="sidebar-dot dot-emerald"></span>
+                            <span class="sidebar-label">Genome</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="codon-usage">
+                            <span class="sidebar-dot dot-amber"></span>
+                            <span class="sidebar-label">Codon Usage</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="gene-aliases">
+                            <span class="sidebar-dot dot-rose"></span>
+                            <span class="sidebar-label">Gene Aliases</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="orf">
+                            <span class="sidebar-dot dot-cyan"></span>
+                            <span class="sidebar-label">ORF</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="histolytica" data-type="full-gff">
+                            <span class="sidebar-dot dot-slate"></span>
+                            <span class="sidebar-label">Full GFF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-organism sidebar-collapsible-toggle" data-target="inv-items">
+                        <div class="sidebar-organism-badge inv">EI</div>
+                        <span class="sidebar-label"><em>E. invadens</em></span>
+                        <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+                    <div class="sidebar-collapsible open" id="inv-items">
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="transcriptomics">
+                            <span class="sidebar-dot dot-blue"></span>
+                            <span class="sidebar-label">Transcripts</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="protein">
+                            <span class="sidebar-dot dot-violet"></span>
+                            <span class="sidebar-label">Proteins</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="cds">
+                            <span class="sidebar-dot dot-orange"></span>
+                            <span class="sidebar-label">CDS</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="genome">
+                            <span class="sidebar-dot dot-emerald"></span>
+                            <span class="sidebar-label">Genome</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="codon-usage">
+                            <span class="sidebar-dot dot-amber"></span>
+                            <span class="sidebar-label">Codon Usage</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="gene-aliases">
+                            <span class="sidebar-dot dot-rose"></span>
+                            <span class="sidebar-label">Gene Aliases</span>
+                        </button>
+                        <button class="sidebar-btn data-btn" data-organism="invadens" data-type="full-gff">
+                            <span class="sidebar-dot dot-slate"></span>
+                            <span class="sidebar-label">Full GFF</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="dash-main">
+                <div id="adminContent">
+                    <!-- Welcome content injected by JS -->
+                </div>
+            </main>
+        </div>
     </div>
 
-    <script src="admin-script.js"></script>
+    <script>
+        function togglePassword() {
+            const pw = document.getElementById('password');
+            pw.type = pw.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+    <script src="/admin-script.js"></script>
 </body>
 </html>
