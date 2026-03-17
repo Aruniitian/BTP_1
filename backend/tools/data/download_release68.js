@@ -14,9 +14,9 @@
  * Family-level folders (Entamoebidae, Ehistolytica, etc.) have ESTs / Isolates.
  *
  * Usage:
- *   node download_release68.js                  # download everything
- *   node download_release68.js --dry-run        # list files without downloading
- *   node download_release68.js --organism Ehist # filter by organism prefix
+ *   node backend/tools/data/download_release68.js                  # download everything
+ *   node backend/tools/data/download_release68.js --dry-run        # list files without downloading
+ *   node backend/tools/data/download_release68.js --organism Ehist # filter by organism prefix
  */
 
 const https = require('https');
@@ -27,7 +27,8 @@ const { URL } = require('url');
 
 // ── Configuration ──────────────────────────────────────────────────────────────
 const BASE_URL   = 'https://amoebadb.org/common/downloads/release-68/';
-const OUT_DIR    = path.join(__dirname, 'AmoebaDB_Release68');
+const ROOT_DIR   = path.join(__dirname, '..', '..', '..');
+const OUT_DIR    = path.join(ROOT_DIR, 'AmoebaDB_Release68');
 const CONCURRENT = 3;          // parallel downloads
 const RETRY_MAX  = 3;          // retries per file
 const RETRY_DELAY = 2000;      // ms between retries

@@ -1,6 +1,6 @@
 // =============================================================================
 // tests/test-fixes.js — Automated tests for all 10 critical fixes
-// Run:  NODE_ENV=test node tests/test-fixes.js
+// Run:  NODE_ENV=test node backend/tests/test-fixes.js
 // =============================================================================
 
 process.env.NODE_ENV = 'test';
@@ -63,7 +63,7 @@ async function runTests() {
     assert(serverSource.includes("process.env.ADMIN_USERNAME"), 'server.js reads ADMIN_USERNAME from env');
     assert(serverSource.includes("process.env.ADMIN_PASSWORD"), 'server.js reads ADMIN_PASSWORD from env');
 
-    const adminSource = fs.readFileSync(require.resolve('../public/admin-script.js'), 'utf8');
+    const adminSource = fs.readFileSync(require.resolve('../../public/admin-script.js'), 'utf8');
     assert(!adminSource.includes("password: 'amoeba2024'"), 'admin-script.js has no hardcoded password');
     assert(!adminSource.includes("'Bearer admin:amoeba2024'"), 'admin-script.js has no hardcoded Bearer token');
 
@@ -112,7 +112,7 @@ async function runTests() {
     // =========================================================================
     console.log('\n📦 Fix #5: MongoDB dependency removed');
     // =========================================================================
-    const pkgSource = fs.readFileSync(require.resolve('../package.json'), 'utf8');
+    const pkgSource = fs.readFileSync(require.resolve('../../package.json'), 'utf8');
     const pkg = JSON.parse(pkgSource);
     assert(!pkg.dependencies.mongodb, 'package.json has no mongodb dependency');
     assert(!!pkg.dependencies.dotenv, 'package.json has dotenv dependency');

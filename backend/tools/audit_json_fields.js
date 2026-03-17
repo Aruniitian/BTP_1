@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dataRoot = path.join(__dirname, '..', 'public', 'Data');
+const dataRoot = path.join(__dirname, '..', '..', 'public', 'Data');
 
 function listFiles(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });

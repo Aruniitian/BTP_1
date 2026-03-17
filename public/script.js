@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (linkText === 'Genome') {
                     console.log('Loading genome data...');
                     await loadData('genome', 'histolytica');
-                } else if (linkText.toLowerCase() === 'gene aliases' || linkText.toLowerCase() === 'gene aliases') {
+                } else if (linkText.toLowerCase() === 'gene aliases' || linkText.toLowerCase() === 'gene alias') {
                     console.log('Loading Entamoeba Histolytica gene aliases data...');
                     await loadData('gene-aliases', 'histolytica');
                 }

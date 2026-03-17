@@ -16,8 +16,8 @@
  *          …
  *
  *  Usage:
- *    node convert_to_json.js            — convert all files
- *    node convert_to_json.js --force    — re-convert even if already done
+ *    node backend/tools/data/convert_to_json.js            — convert all files
+ *    node backend/tools/data/convert_to_json.js --force    — re-convert even if already done
  * ============================================================================
  */
 
@@ -27,8 +27,9 @@ const readline = require('readline');
 const zlib = require('zlib');
 
 // ─── Configuration ──────────────────────────────────────────────────────────
-const SRC_DIR    = path.join(__dirname, 'AmoebaDB_Release68');
-const OUT_DIR    = path.join(__dirname, 'AmoebaDB_JSON');
+const ROOT_DIR   = path.join(__dirname, '..', '..', '..');
+const SRC_DIR    = path.join(ROOT_DIR, 'AmoebaDB_Release68');
+const OUT_DIR    = path.join(ROOT_DIR, 'AmoebaDB_JSON');
 const CHUNK_SIZE = 1000;          // records per chunk file (non-FASTA)
 const FASTA_CHUNK = 200;          // smaller chunks for FASTA (full sequences are large)
 const FORCE      = process.argv.includes('--force');

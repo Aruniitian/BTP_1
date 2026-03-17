@@ -10,7 +10,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const JSON_DIR = path.join(__dirname, 'AmoebaDB_JSON');
+const ROOT_DIR = path.join(__dirname, '..', '..', '..');
+const JSON_DIR = path.join(ROOT_DIR, 'AmoebaDB_JSON');
 const INDEX_PATH = path.join(JSON_DIR, '_search_index.json');
 
 // Fields to extract for search
