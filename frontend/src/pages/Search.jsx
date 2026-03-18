@@ -4,10 +4,33 @@ import {
   Search as SearchIcon, Loader2, Database, ArrowRight,
   Microscope, FileText, Filter, X, Dna, BookOpen,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  ChevronDown,
+  ChevronDown, Code, BarChart, Tags, Layers, List, ExternalLink,
 } from 'lucide-react';
 
 const PAGE_SIZE = 50;
+
+const CATEGORY_ICON_MAP = {
+  'Annotated Transcripts': { Icon: FileText, color: 'text-blue-600' },
+  'Annotated Proteins':    { Icon: Dna,      color: 'text-purple-600' },
+  'Annotated CDS':         { Icon: Code,     color: 'text-emerald-600' },
+  'Genome Sequences':      { Icon: Database,  color: 'text-teal-600' },
+  'GFF Annotations':       { Icon: List,      color: 'text-slate-600' },
+  'ORF50 Predictions':     { Icon: Layers,    color: 'text-indigo-600' },
+  'Codon Usage':           { Icon: BarChart,   color: 'text-amber-600' },
+  'Gene Aliases':          { Icon: Tags,       color: 'text-rose-600' },
+  'Curated GO (GAF)':      { Icon: BookOpen,   color: 'text-emerald-600' },
+  'GO Associations (GAF)': { Icon: BookOpen,   color: 'text-lime-600' },
+  'NCBI Linkout — Nucleotide': { Icon: ExternalLink, color: 'text-sky-600' },
+  'NCBI Linkout — Protein':    { Icon: ExternalLink, color: 'text-cyan-600' },
+  'FASTA Sequences':       { Icon: Dna,        color: 'text-blue-600' },
+  'Text Data':             { Icon: FileText,   color: 'text-amber-600' },
+  'XML / Linkout':         { Icon: ExternalLink, color: 'text-sky-600' },
+};
+
+function CategoryIcon({ category }) {
+  const entry = CATEGORY_ICON_MAP[category] || { Icon: FileText, color: 'text-slate-500' };
+  return <entry.Icon className={`w-4 h-4 ${entry.color}`} />;
+}
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -109,17 +132,29 @@ export default function Search() {
     return true;
   });
 
-  // Group filtered results by organism (preserving server sort order)
+  // Group filtered results by organism, then sub-group by dataCategory
   const groupedByOrg = useMemo(() => {
     const groups = [];
     const map = new Map();
     for (const r of filteredResults) {
       if (!map.has(r.organism)) {
-        const group = { organism: r.organism, items: [] };
+        const group = { organism: r.organism, items: [], subGroups: [] };
         map.set(r.organism, group);
         groups.push(group);
       }
       map.get(r.organism).items.push(r);
+    }
+    // Build sub-groups by dataCategory within each organism
+    for (const group of groups) {
+      const catMap = new Map();
+      for (const item of group.items) {
+        const cat = item.dataCategory || 'Other';
+        if (!catMap.has(cat)) {
+          catMap.set(cat, { category: cat, items: [] });
+        }
+        catMap.get(cat).items.push(item);
+      }
+      group.subGroups = [...catMap.values()];
     }
     return groups;
   }, [filteredResults]);
@@ -300,59 +335,71 @@ export default function Search() {
                       <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
                     </button>
 
-                    {/* Result cards within this organism */}
+                    {/* Result cards within this organism — grouped by data category */}
                     {!isCollapsed && (
-                      <div className="divide-y divide-slate-100">
-                        {group.items.map((r, i) => {
-                          const parts = r.dataset.split('/');
-                          const orgKey = parts[0];
-                          const restPath = parts.slice(1, -1).join('/');
-                          const filePath = restPath ? restPath + '/' + r.sourceFile : r.sourceFile;
-                          const viewUrl = `/raw-view?organism=${encodeURIComponent(orgKey)}&file=${encodeURIComponent(filePath)}&name=${encodeURIComponent(r.orgName)}&highlight=${encodeURIComponent(r.id)}`;
-
-                          return (
-                            <div
-                              key={i}
-                              className="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 transition-colors group"
-                            >
-                              <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 group-hover:bg-primary-50 transition-colors">
-                                {r.sourceFile?.includes('.fasta') ? (
-                                  <Dna className="w-4 h-4 text-primary-600" />
-                                ) : (
-                                  <FileText className="w-4 h-4 text-primary-600" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-slate-800 text-sm group-hover:text-primary-700 transition-colors">
-                                  {r.id}
-                                </p>
-                                {r.product && (
-                                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{r.product}</p>
-                                )}
-                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                  <span className="text-[11px] font-medium px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">
-                                    {r.type}
-                                  </span>
-                                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                                    <BookOpen className="w-3 h-3" />
-                                    {r.sourceFile}
-                                  </span>
-                                  {r.matchedIn && r.matchedIn !== 'id' && r.matchedIn !== 'ID' && (
-                                    <span className="text-[10px] text-slate-400 italic">
-                                      matched in: {r.matchedIn}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <Link
-                                to={viewUrl}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
-                              >
-                                View <ArrowRight className="w-3.5 h-3.5" />
-                              </Link>
+                      <div>
+                        {group.subGroups.map(sg => (
+                          <div key={sg.category}>
+                            {/* Data category sub-header */}
+                            <div className="flex items-center gap-2 px-5 py-2 bg-slate-50 border-y border-slate-100">
+                              <CategoryIcon category={sg.category} />
+                              <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                {sg.category}
+                              </span>
+                              <span className="text-[10px] text-slate-400 ml-1">
+                                ({sg.items.length})
+                              </span>
                             </div>
-                          );
-                        })}
+                            <div className="divide-y divide-slate-100">
+                              {sg.items.map((r, i) => {
+                                const parts = r.dataset.split('/');
+                                const orgKey = parts[0];
+                                const restPath = parts.slice(1, -1).join('/');
+                                const filePath = restPath ? restPath + '/' + r.sourceFile : r.sourceFile;
+                                const viewUrl = `/raw-view?organism=${encodeURIComponent(orgKey)}&file=${encodeURIComponent(filePath)}&name=${encodeURIComponent(r.orgName)}&highlight=${encodeURIComponent(r.id)}`;
+
+                                return (
+                                  <div
+                                    key={i}
+                                    className="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 transition-colors group"
+                                  >
+                                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 group-hover:bg-primary-50 transition-colors">
+                                      <CategoryIcon category={r.dataCategory} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-semibold text-slate-800 text-sm group-hover:text-primary-700 transition-colors">
+                                        {r.id}
+                                      </p>
+                                      {r.product && (
+                                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{r.product}</p>
+                                      )}
+                                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                        <span className="text-[11px] font-medium px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">
+                                          {r.type}
+                                        </span>
+                                        <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                                          <BookOpen className="w-3 h-3" />
+                                          {r.sourceFile}
+                                        </span>
+                                        {r.matchedIn && r.matchedIn !== 'id' && r.matchedIn !== 'ID' && (
+                                          <span className="text-[10px] text-slate-400 italic">
+                                            matched in: {r.matchedIn}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Link
+                                      to={viewUrl}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
+                                    >
+                                      View <ArrowRight className="w-3.5 h-3.5" />
+                                    </Link>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

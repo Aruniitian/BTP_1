@@ -180,6 +180,7 @@ app.get('/test-protein', (req, res) => {
 let searchStrings = null;    // interned strings array
 let searchEntries = null;    // array of [idIdx, prodIdx, orgIdx, dsIdx, srcIdx, type]
 let searchIndexReady = false;
+let orgDisplayNameMap = {};  // maps organism folder name (lowercase) → full display name (lowercase)
 
 function loadSearchIndex() {
     const indexPath = path.join(JSON_DIR, '_search_index.json');
@@ -193,6 +194,19 @@ function loadSearchIndex() {
         const parsed = JSON.parse(raw);
         searchStrings = parsed.strings;
         searchEntries = parsed.entries;
+
+        // Build organism display-name map for search matching
+        const orgSet = new Set();
+        for (const e of searchEntries) {
+            const orgStr = searchStrings[e[2]];
+            if (orgStr) orgSet.add(orgStr);
+        }
+        orgDisplayNameMap = {};
+        for (const folderName of orgSet) {
+            const info = folderToDisplayName(folderName);
+            orgDisplayNameMap[folderName.toLowerCase()] = info.name.toLowerCase();
+        }
+
         searchIndexReady = true;
         console.log(`🔍 Search index loaded: ${searchEntries.length.toLocaleString()} entries, ${searchStrings.length.toLocaleString()} strings in ${Date.now() - start}ms`);
     } catch (err) {
@@ -224,26 +238,70 @@ app.get('/api/search', (req, res) => {
     const matchedIndices = [];
     for (let idx = 0; idx < searchEntries.length; idx++) {
         const e = searchEntries[idx];
-        const idStr  = searchStrings[e[0]] || '';
+        const idStr   = searchStrings[e[0]] || '';
         const prodStr = searchStrings[e[1]] || '';
+        const orgStr  = searchStrings[e[2]] || '';
+        const dsStr   = searchStrings[e[3]] || '';
+        const srcStr  = searchStrings[e[4]] || '';
         const typeStr = e[5] || '';
+        const orgFull = orgDisplayNameMap[orgStr.toLowerCase()] || '';
 
         if (
             idStr.toLowerCase().includes(lq) ||
             prodStr.toLowerCase().includes(lq) ||
-            typeStr.toLowerCase().includes(lq)
+            typeStr.toLowerCase().includes(lq) ||
+            orgStr.toLowerCase().includes(lq) ||
+            orgFull.includes(lq) ||
+            dsStr.toLowerCase().includes(lq) ||
+            srcStr.toLowerCase().includes(lq)
         ) {
             matchedIndices.push(idx);
         }
     }
 
-    // Sort matched indices by organism name so results are grouped
+    // Classify a source file into a human-readable data category
+    function classifySourceFile(src) {
+        const s = src.toLowerCase();
+        if (s.includes('annotatedtranscripts')) return 'Annotated Transcripts';
+        if (s.includes('annotatedproteins'))    return 'Annotated Proteins';
+        if (s.includes('annotatedcdss'))        return 'Annotated CDS';
+        if (s.includes('genome') && s.endsWith('.fasta'))  return 'Genome Sequences';
+        if (s.includes('orf50'))                return 'ORF50 Predictions';
+        if (s.includes('codonusage'))           return 'Codon Usage';
+        if (s.includes('genealiases'))          return 'Gene Aliases';
+        if (s.includes('curated_go'))           return 'Curated GO (GAF)';
+        if (s.includes('go.gaf'))               return 'GO Associations (GAF)';
+        if (s.includes('linkout_nucleotide'))   return 'NCBI Linkout — Nucleotide';
+        if (s.includes('linkout_protein'))      return 'NCBI Linkout — Protein';
+        if (s.endsWith('.gff'))                 return 'GFF Annotations';
+        if (s.endsWith('.fasta') || s.endsWith('.fa') || s.endsWith('.fna') || s.endsWith('.faa')) return 'FASTA Sequences';
+        if (s.endsWith('.gaf') || s.endsWith('.gaf.gz')) return 'GO Associations (GAF)';
+        if (s.endsWith('.txt') || s.endsWith('.tab') || s.endsWith('.tsv')) return 'Text Data';
+        if (s.endsWith('.xml'))                 return 'XML / Linkout';
+        return 'Other';
+    }
+
+    // Category sort order for consistent display
+    const CATEGORY_ORDER = [
+        'Annotated Transcripts', 'Annotated Proteins', 'Annotated CDS',
+        'Genome Sequences', 'GFF Annotations', 'ORF50 Predictions',
+        'Codon Usage', 'Gene Aliases', 'Curated GO (GAF)',
+        'GO Associations (GAF)', 'NCBI Linkout — Nucleotide',
+        'NCBI Linkout — Protein', 'FASTA Sequences', 'Text Data',
+        'XML / Linkout', 'Other',
+    ];
+    const catOrderMap = {};
+    CATEGORY_ORDER.forEach((c, i) => { catOrderMap[c] = i; });
+
+    // Sort matched indices by organism then by data category
     matchedIndices.sort((a, b) => {
         const orgA = (searchStrings[searchEntries[a][2]] || '').toLowerCase();
         const orgB = (searchStrings[searchEntries[b][2]] || '').toLowerCase();
         if (orgA < orgB) return -1;
         if (orgA > orgB) return 1;
-        return 0;
+        const catA = catOrderMap[classifySourceFile(searchStrings[searchEntries[a][4]] || '')] ?? 99;
+        const catB = catOrderMap[classifySourceFile(searchStrings[searchEntries[b][4]] || '')] ?? 99;
+        return catA - catB;
     });
 
     // Build organism-wise counts across ALL matches (before organism filter)
@@ -284,7 +342,13 @@ app.get('/api/search', (req, res) => {
         let matchedIn = 'id';
         if (idStr.toLowerCase().includes(lq)) matchedIn = 'id';
         else if (prodStr.toLowerCase().includes(lq)) matchedIn = 'product';
+        else if ((orgDisplayNameMap[(searchStrings[e[2]] || '').toLowerCase()] || '').includes(lq) ||
+                 (searchStrings[e[2]] || '').toLowerCase().includes(lq)) matchedIn = 'organism';
+        else if ((searchStrings[e[3]] || '').toLowerCase().includes(lq) ||
+                 sourceFile.toLowerCase().includes(lq)) matchedIn = 'source';
         else matchedIn = 'type';
+
+        const dataCategory = classifySourceFile(sourceFile);
 
         return {
             id: idStr,
@@ -292,6 +356,7 @@ app.get('/api/search', (req, res) => {
             organism: orgDir,
             orgName: orgDir,
             type: typeStr || (sourceFile.includes('.fasta') ? 'sequence' : 'record'),
+            dataCategory,
             dataset,
             sourceFile,
             matchedIn,
@@ -1524,9 +1589,9 @@ app.get('/api/organisms', (req, res) => {
                                 let recordCount = 0;
                                 if (hasJson) {
                                     try {
-                                        const m = JSON.parse(fs.readFileSync(jsonMeta, 'utf8'));
-                                        recordCount = m.total || 0;
-                                    } catch (_) {}
+                                        const meta = JSON.parse(fs.readFileSync(jsonMeta, 'utf8'));
+                                        recordCount = meta.total || 0;
+                                    } catch (_e) { /* ignore */ }
                                 }
                                 files.push({
                                     name: e.name,
