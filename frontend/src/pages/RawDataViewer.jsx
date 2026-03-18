@@ -3,7 +3,8 @@ import { useSearchParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, Search, ChevronDown, ChevronUp, Download,
   Database, AlertCircle, Loader2, FileText, HardDrive,
-  Copy, Check, Maximize2, Minimize2,
+  Copy, Check, Maximize2, Minimize2, Dna, Tag, Layers,
+  Filter, X,
 } from 'lucide-react';
 
 function formatBytes(bytes) {
@@ -11,6 +12,64 @@ function formatBytes(bytes) {
   const units = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
+}
+
+/* Icon + color mapping for category types */
+const CATEGORY_STYLE = {
+  'Supercontig / Scaffold':   { color: 'bg-blue-50 text-blue-700 border-blue-200',    icon: Layers },
+  'Chromosome':               { color: 'bg-blue-50 text-blue-700 border-blue-200',    icon: Layers },
+  'Protein-Coding Gene':      { color: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: Dna },
+  'Non-Coding RNA Gene':      { color: 'bg-violet-50 text-violet-700 border-violet-200',    icon: Dna },
+  'mRNA Transcript':          { color: 'bg-cyan-50 text-cyan-700 border-cyan-200',    icon: Dna },
+  'Exon':                     { color: 'bg-amber-50 text-amber-700 border-amber-200', icon: Tag },
+  'Coding Sequence (CDS)':    { color: 'bg-rose-50 text-rose-700 border-rose-200',    icon: Tag },
+  "5' UTR":                   { color: 'bg-pink-50 text-pink-700 border-pink-200',    icon: Tag },
+  "3' UTR":                   { color: 'bg-pink-50 text-pink-700 border-pink-200',    icon: Tag },
+  'Pseudogene':               { color: 'bg-slate-100 text-slate-600 border-slate-200',icon: Tag },
+  'Pseudogenic Transcript':   { color: 'bg-slate-100 text-slate-600 border-slate-200',icon: Tag },
+  'Gene':                     { color: 'bg-teal-50 text-teal-700 border-teal-200',    icon: Dna },
+  'Protein':                  { color: 'bg-orange-50 text-orange-700 border-orange-200',icon: Dna },
+  'Cellular Component':       { color: 'bg-sky-50 text-sky-700 border-sky-200',       icon: Layers },
+  'Molecular Function':       { color: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: Tag },
+  'Biological Process':       { color: 'bg-lime-50 text-lime-700 border-lime-200',    icon: Layers },
+};
+
+const DEFAULT_STYLE = { color: 'bg-slate-50 text-slate-600 border-slate-200', icon: Tag };
+
+function getCategoryStyle(label) {
+  return CATEGORY_STYLE[label] || DEFAULT_STYLE;
+}
+
+/** Friendly display labels for known file-name suffixes */
+const FILE_LABELS = {
+  AnnotatedCDSs:            'Annotated CDSs',
+  AnnotatedProteins:        'Annotated Proteins',
+  AnnotatedTranscripts:     'Annotated Transcripts',
+  Genome:                   'Genome',
+  Curated_GO:               'Curated GO',
+  GO:                       'GO Associations',
+  CodonUsage:               'Codon Usage',
+  GeneAliases:              'Gene Aliases',
+  NCBILinkout_Nucleotide:   'NCBI Linkout Nucleotide',
+  NCBILinkout_Protein:      'NCBI Linkout Protein',
+};
+
+/** Strip the common "AmoebaDB-68_OrganismName_" prefix from raw file names */
+function cleanFileName(name) {
+  if (!name.startsWith('AmoebaDB')) return name;
+  let c = name.replace(/^AmoebaDB-\d+_/, '');
+  const dotIdx = c.indexOf('.');
+  const ext = dotIdx >= 0 ? c.substring(dotIdx) : '';
+  const base = dotIdx >= 0 ? c.substring(0, dotIdx) : c;
+  const parts = base.split('_');
+  if (parts.length >= 2) {
+    parts.shift();
+    const key = parts.join('_');
+    if (FILE_LABELS[key]) return FILE_LABELS[key] + ext;
+    return parts.join(' ') + ext;
+  }
+  if (/^[A-Z][a-z].*[A-Z]/.test(base)) return 'Annotations' + ext;
+  return base + ext;
 }
 
 const PAGE_SIZE = 50;
@@ -27,6 +86,7 @@ export default function RawDataViewer() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState(highlight);
+  const [activeCategory, setActiveCategory] = useState(''); // '' = all
 
   // Fetch data from server parser
   useEffect(() => {
@@ -45,6 +105,7 @@ export default function RawDataViewer() {
       pageSize: String(PAGE_SIZE),
     });
     if (highlight) params.set('search', highlight);
+    if (activeCategory) params.set('category', activeCategory);
 
     fetch(`/api/raw-data?${params}`)
       .then((r) => {
@@ -57,7 +118,13 @@ export default function RawDataViewer() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [organism, file, page, highlight]);
+  }, [organism, file, page, highlight, activeCategory]);
+
+  // Reset page when category changes
+  const handleCategoryChange = (catName) => {
+    setActiveCategory(catName === activeCategory ? '' : catName);
+    setPage(1);
+  };
 
   // Local search filter
   const filteredRecords = data?.records?.filter((rec) => {
@@ -92,7 +159,7 @@ export default function RawDataViewer() {
           <em>{orgName}</em>
         </Link>
         <span>/</span>
-        <span className="text-slate-700 font-medium truncate">{fileName}</span>
+        <span className="text-slate-700 font-medium truncate">{cleanFileName(fileName)}</span>
       </div>
 
       {/* Header */}
@@ -106,7 +173,7 @@ export default function RawDataViewer() {
               <ArrowLeft className="w-4 h-4" /> Back
             </Link>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 break-all">{fileName}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 break-all">{cleanFileName(fileName)}</h1>
           <div className="flex items-center gap-4 mt-2 text-sm text-slate-500 flex-wrap">
             <span className="flex items-center gap-1">
               <FileText className="w-4 h-4" /> {typeLabel}
@@ -179,6 +246,72 @@ export default function RawDataViewer() {
       {/* Data Display */}
       {!loading && !error && data && (
         <>
+          {/* ── Category Navigation Panel ── */}
+          {data.categories && data.categories.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="w-4 h-4 text-slate-400" />
+                <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wider">
+                  Data Categories
+                </h3>
+                {activeCategory && (
+                  <button
+                    onClick={() => handleCategoryChange('')}
+                    className="ml-2 inline-flex items-center gap-1 text-xs font-medium px-2 py-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200 transition"
+                  >
+                    <X className="w-3 h-3" /> Clear filter
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {data.categories.map((cat) => {
+                  const style = getCategoryStyle(cat.label);
+                  const Icon = style.icon;
+                  const isActive = activeCategory === cat.name;
+                  return (
+                    <button
+                      key={cat.name}
+                      onClick={() => handleCategoryChange(cat.name)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                        isActive
+                          ? 'ring-2 ring-primary-500 border-primary-400 bg-primary-50 shadow-sm'
+                          : `${style.color} hover:shadow-sm hover:scale-[1.01]`
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${isActive ? 'bg-primary-100' : 'bg-white/60'}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-semibold truncate ${isActive ? 'text-primary-700' : ''}`}>
+                          {cat.label}
+                        </p>
+                        <p className="text-xs opacity-70">
+                          {cat.count.toLocaleString()} records
+                        </p>
+                      </div>
+                      {isActive && (
+                        <Check className="w-4 h-4 text-primary-600 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Active filter indicator ── */}
+          {activeCategory && data.categories && (
+            <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-primary-50 border border-primary-200 rounded-xl text-sm">
+              <Filter className="w-4 h-4 text-primary-600" />
+              <span className="text-primary-700 font-medium">
+                Showing: {data.categories.find(c => c.name === activeCategory)?.label || activeCategory}
+              </span>
+              <span className="text-primary-500">
+                ({totalRecords.toLocaleString()} records)
+              </span>
+            </div>
+          )}
+
           {filteredRecords.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
               <Database className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -189,13 +322,13 @@ export default function RawDataViewer() {
             <>
               {/* Determine display mode based on file type */}
               {(ext === 'fasta' || ext === 'fa' || ext === 'fna' || ext === 'faa') ? (
-                <FastaDisplay records={filteredRecords} page={page} />
+                <FastaDisplay records={filteredRecords} page={page} categoryField={data.categoryField} />
               ) : (ext === 'txt' || ext === 'tab' || ext === 'tsv') ? (
                 <TableDisplay records={filteredRecords} columns={data.columns} page={page} />
               ) : (ext === 'xml') ? (
                 <TableDisplay records={filteredRecords} columns={data.columns} page={page} />
               ) : (ext === 'gff' || ext === 'gff3') ? (
-                <GffDisplay records={filteredRecords} page={page} />
+                <GffDisplay records={filteredRecords} page={page} categoryField={data.categoryField} />
               ) : (ext === 'gz' && data.columns?.length > 0) ? (
                 <TableDisplay records={filteredRecords} columns={data.columns} page={page} />
               ) : (
@@ -251,15 +384,83 @@ export default function RawDataViewer() {
   );
 }
 
-/* ========== FASTA Display ========== */
-function FastaDisplay({ records, page }) {
+/* ========== Grouped Section Wrapper ========== */
+function GroupedDisplay({ records, page, categoryField, CardComponent }) {
+  if (!categoryField) {
+    // No grouping — flat list
+    return (
+      <div className="space-y-3">
+        {records.map((rec, i) => (
+          <CardComponent key={i} rec={rec} index={(page - 1) * PAGE_SIZE + i} />
+        ))}
+      </div>
+    );
+  }
+
+  // Group records by category field
+  const groups = [];
+  const groupMap = new Map();
+  records.forEach((rec, i) => {
+    const key = rec[categoryField] || 'Unknown';
+    if (!groupMap.has(key)) {
+      const group = { key, records: [] };
+      groupMap.set(key, group);
+      groups.push(group);
+    }
+    groupMap.get(key).records.push({ rec, globalIndex: (page - 1) * PAGE_SIZE + i });
+  });
+
   return (
-    <div className="space-y-3">
-      {records.map((rec, i) => (
-        <FastaCard key={i} rec={rec} index={(page - 1) * PAGE_SIZE + i} />
+    <div className="space-y-4">
+      {groups.map((group) => (
+        <CategorySection key={group.key} groupKey={group.key} records={group.records} CardComponent={CardComponent} />
       ))}
     </div>
   );
+}
+
+function CategorySection({ groupKey, records, CardComponent }) {
+  const [open, setOpen] = useState(true);
+  const label = groupKey.replace(/_/g, ' ');
+  const style = getCategoryStyle(
+    // Try to match by known label
+    Object.keys(CATEGORY_STYLE).find(k => k.toLowerCase().includes(label.toLowerCase())) || label
+  );
+  const Icon = style.icon;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors ${
+          open ? 'bg-slate-50 border-b border-slate-200' : 'bg-white hover:bg-slate-50'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg ${style.color.split(' ')[0]}`}>
+            <Icon className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="font-semibold text-slate-800 capitalize">{label}</span>
+            <span className="ml-2 text-sm text-slate-500">({records.length} on this page)</span>
+          </div>
+        </div>
+        {open ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+      </button>
+      {open && (
+        <div className="p-4 space-y-3 bg-white">
+          {records.map(({ rec, globalIndex }) => (
+            <CardComponent key={globalIndex} rec={rec} index={globalIndex} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========== FASTA Display ========== */
+function FastaDisplay({ records, page, categoryField }) {
+  return <GroupedDisplay records={records} page={page} categoryField={categoryField} CardComponent={FastaCard} />;
 }
 
 function FastaCard({ rec, index }) {
@@ -356,14 +557,8 @@ function FastaCard({ rec, index }) {
 }
 
 /* ========== GFF Display ========== */
-function GffDisplay({ records, page }) {
-  return (
-    <div className="space-y-3">
-      {records.map((rec, i) => (
-        <GffCard key={i} rec={rec} index={(page - 1) * PAGE_SIZE + i} />
-      ))}
-    </div>
-  );
+function GffDisplay({ records, page, categoryField }) {
+  return <GroupedDisplay records={records} page={page} categoryField={categoryField} CardComponent={GffCard} />;
 }
 
 function GffCard({ rec, index }) {

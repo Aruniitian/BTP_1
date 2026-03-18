@@ -1357,6 +1357,67 @@ function parseXml(filePath, skip, limit) {
     });
 }
 
+// ── Category grouping helpers ────────────────────────────────────────────────
+// Returns the record field to group by for a given file extension.
+function getCategoryField(ext) {
+    if (['fasta','fa','fna','faa'].includes(ext)) return 'SO';
+    if (['gff','gff3'].includes(ext))             return 'type';
+    if (['gaf','gz'].includes(ext))               return 'Aspect';
+    return null;
+}
+
+// Pretty labels for raw category values
+const CATEGORY_LABELS = {
+    supercontig:           'Supercontig / Scaffold',
+    chromosome:            'Chromosome',
+    protein_coding_gene:   'Protein-Coding Gene',
+    ncRNA_gene:            'Non-Coding RNA Gene',
+    rRNA_gene:             'Ribosomal RNA Gene',
+    tRNA_gene:             'Transfer RNA Gene',
+    snRNA_gene:            'Small Nuclear RNA Gene',
+    snoRNA_gene:           'Small Nucleolar RNA Gene',
+    pseudogene:            'Pseudogene',
+    pseudogenic_transcript:'Pseudogenic Transcript',
+    mRNA:                  'mRNA Transcript',
+    exon:                  'Exon',
+    CDS:                   'Coding Sequence (CDS)',
+    five_prime_UTR:        "5' UTR",
+    three_prime_UTR:       "3' UTR",
+    gene:                  'Gene',
+    repeat_region:         'Repeat Region',
+    protein:               'Protein',
+    // GAF aspects
+    C:                     'Cellular Component',
+    F:                     'Molecular Function',
+    P:                     'Biological Process',
+};
+
+// In-memory cache: "organism/file" → [{name, label, count}]
+const categoryCacheMap = new Map();
+
+// Scan all JSON chunks to build category summary for a file.
+function buildCategorySummary(jsonDir, meta, ext) {
+    const field = getCategoryField(ext);
+    if (!field) return [];
+    const counts = {};
+    for (let i = 0; i < meta.chunks; i++) {
+        const chunkPath = path.join(jsonDir, `chunk_${i}.json`);
+        if (!fs.existsSync(chunkPath)) continue;
+        const chunk = JSON.parse(fs.readFileSync(chunkPath, 'utf8'));
+        for (const rec of chunk) {
+            const val = rec[field] || 'Unknown';
+            counts[val] = (counts[val] || 0) + 1;
+        }
+    }
+    return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({
+            name,
+            label: CATEGORY_LABELS[name] || name.replace(/_/g, ' '),
+            count,
+        }));
+}
+
 /**
  * Map an API file parameter to the corresponding pre-converted JSON directory.
  * Mirrors the path logic used by convert_to_json.js.
@@ -1369,10 +1430,10 @@ function getJsonDir(organism, relFilePath) {
     return path.join(JSON_DIR, organism, relDir, cleanBase);
 }
 
-/** API endpoint: GET /api/raw-data?organism=X&file=fasta/data/file.fasta&page=1&pageSize=50 */
+/** API endpoint: GET /api/raw-data?organism=X&file=fasta/data/file.fasta&page=1&pageSize=50&category=supercontig */
 app.get('/api/raw-data', async (req, res) => {
     try {
-        const { organism, file, page = '1', pageSize = '50', search = '' } = req.query;
+        const { organism, file, page = '1', pageSize = '50', search = '', category = '' } = req.query;
         if (!organism || !file) {
             return res.status(400).json({ error: 'Missing organism or file parameter' });
         }
@@ -1384,6 +1445,11 @@ app.get('/api/raw-data', async (req, res) => {
         const ps   = Math.min(200, Math.max(10, parseInt(pageSize, 10) || 50));
         const skip = (pg - 1) * ps;
 
+        // Determine file extension for category grouping
+        const fileExt = path.extname(safePath).replace(/^\./, '').toLowerCase();
+        const catField = getCategoryField(fileExt);
+        const catFilter = sanitizeString(category).trim();
+
         // ── 1. Try pre-converted JSON chunks first ──────────────────────
         const jsonDir  = getJsonDir(organism, safePath);
         const metaPath = path.join(jsonDir, 'meta.json');
@@ -1392,23 +1458,34 @@ app.get('/api/raw-data', async (req, res) => {
             const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
             const chunkSize   = meta.chunkSize || 1000;
 
-            // ── If a search ID is provided, find matching records across all chunks ──
+            // ── Build / retrieve category summary ──
+            const cacheKey = `${organism}/${safePath}`;
+            let categories = categoryCacheMap.get(cacheKey);
+            if (!categories) {
+                categories = buildCategorySummary(jsonDir, meta, fileExt);
+                categoryCacheMap.set(cacheKey, categories);
+            }
+
+            // ── If a search ID or category filter is provided, scan chunks ──
             const searchTerm = sanitizeString(search).trim().toLowerCase();
-            if (searchTerm) {
+            if (searchTerm || catFilter) {
                 const matchedRecords = [];
                 for (let i = 0; i < meta.chunks; i++) {
                     const chunkPath = path.join(jsonDir, `chunk_${i}.json`);
                     if (!fs.existsSync(chunkPath)) continue;
                     const chunkData = JSON.parse(fs.readFileSync(chunkPath, 'utf8'));
                     for (const rec of chunkData) {
-                        const recStr = JSON.stringify(rec).toLowerCase();
-                        if (recStr.includes(searchTerm)) {
-                            matchedRecords.push(rec);
+                        // Apply category filter
+                        if (catFilter && catField && rec[catField] !== catFilter) continue;
+                        // Apply search filter
+                        if (searchTerm) {
+                            const recStr = JSON.stringify(rec).toLowerCase();
+                            if (!recStr.includes(searchTerm)) continue;
                         }
+                        matchedRecords.push(rec);
                     }
                 }
                 const total = matchedRecords.length;
-                const totalPages = Math.ceil(total / ps);
                 const records = matchedRecords.slice((pg - 1) * ps, pg * ps);
                 return res.json({
                     success: true,
@@ -1422,7 +1499,10 @@ app.get('/api/raw-data', async (req, res) => {
                     total,
                     fileSize: meta.fileSize || 0,
                     source: 'json',
-                    searchApplied: searchTerm,
+                    searchApplied: searchTerm || undefined,
+                    categoryApplied: catFilter || undefined,
+                    categories,
+                    categoryField: catField || undefined,
                 });
             }
 
@@ -1455,6 +1535,8 @@ app.get('/api/raw-data', async (req, res) => {
                 total: meta.total,
                 fileSize: meta.fileSize || 0,
                 source: 'json',
+                categories,
+                categoryField: catField || undefined,
             });
         }
 

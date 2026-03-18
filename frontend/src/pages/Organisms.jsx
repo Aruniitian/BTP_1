@@ -33,6 +33,39 @@ function formatBytes(bytes) {
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 }
 
+/** Friendly display labels for known file-name suffixes */
+const FILE_LABELS = {
+  AnnotatedCDSs:            'Annotated CDSs',
+  AnnotatedProteins:        'Annotated Proteins',
+  AnnotatedTranscripts:     'Annotated Transcripts',
+  Genome:                   'Genome',
+  Curated_GO:               'Curated GO',
+  GO:                       'GO Associations',
+  CodonUsage:               'Codon Usage',
+  GeneAliases:              'Gene Aliases',
+  NCBILinkout_Nucleotide:   'NCBI Linkout Nucleotide',
+  NCBILinkout_Protein:      'NCBI Linkout Protein',
+};
+
+/** Strip the common "AmoebaDB-68_OrganismName_" prefix from raw file names */
+function cleanFileName(name) {
+  if (!name.startsWith('AmoebaDB')) return name;
+  let c = name.replace(/^AmoebaDB-\d+_/, '');
+  const dotIdx = c.indexOf('.');
+  const ext = dotIdx >= 0 ? c.substring(dotIdx) : '';
+  const base = dotIdx >= 0 ? c.substring(0, dotIdx) : c;
+  const parts = base.split('_');
+  if (parts.length >= 2) {
+    parts.shift(); // remove organism name
+    const key = parts.join('_');
+    if (FILE_LABELS[key]) return FILE_LABELS[key] + ext;
+    return parts.join(' ') + ext;
+  }
+  // No suffix — file is just "AmoebaDB-68_OrgName.gff"
+  if (/^[A-Z][a-z].*[A-Z]/.test(base)) return 'Annotations' + ext;
+  return base + ext;
+}
+
 export default function Organisms() {
   const [searchParams] = useSearchParams();
   const [selected, setSelected] = useState(searchParams.get('selected') || null);
@@ -293,7 +326,7 @@ export default function Organisms() {
                                   to={viewUrl}
                                   className="flex items-center justify-between gap-2 text-xs px-3 py-2 rounded-lg bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-700 transition-colors group"
                                 >
-                                  <span className="truncate font-medium">{file.name}</span>
+                                  <span className="truncate font-medium">{cleanFileName(file.name)}</span>
                                   <span className="shrink-0 text-slate-400 group-hover:text-primary-500">
                                     {formatBytes(file.size)} →
                                   </span>
