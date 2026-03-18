@@ -4,7 +4,7 @@ import {
   Database, FileText, Dna, Code, BarChart, FlaskConical,
   ArrowRight, Microscope, BookOpen, Users, ShieldCheck,
   HardDrive, FolderOpen, Download, RefreshCw, Loader2,
-  Search, ChevronRight, Layers, Globe,
+  Search, ChevronRight, Layers, Globe, X,
 } from 'lucide-react';
 
 function formatBytes(bytes) {
@@ -26,6 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [orgLoading, setOrgLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeImage, setActiveImage] = useState(null);
 
   const fetchStats = useCallback(() => {
     fetch('/api/stats')
@@ -232,7 +233,7 @@ export default function Home() {
       </section>
 
       {/* ========== Image Gallery ========== */}
-      <section className="bg-slate-100/50 py-20">
+      <section className="bg-slate-100/60 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-900">Featured Images</h2>
@@ -240,26 +241,62 @@ export default function Home() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {IMAGES.map((img, i) => (
-              <div
+              <button
                 key={i}
-                className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-slate-100"
+                type="button"
+                onClick={() => setActiveImage(img)}
+                className="group text-left bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-primary-300"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                <div className="aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 p-3">
                   <img
                     src={img.src}
                     alt={img.caption}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain rounded-xl bg-white shadow-sm group-hover:scale-[1.02] transition-transform duration-300"
                     loading="lazy"
                   />
                 </div>
-                <div className="p-4">
-                  <p className="text-sm font-medium text-slate-700">{img.caption}</p>
+                <div className="p-4 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-slate-700">{img.caption}</p>
+                  <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded-md">View full</span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ========== Image Lightbox ========== */}
+      {activeImage && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm p-4 sm:p-8"
+          onClick={() => setActiveImage(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="relative max-w-6xl mx-auto h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveImage(null)}
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/90 text-slate-700 hover:bg-white transition-colors"
+            >
+              <X className="w-4 h-4" /> Close
+            </button>
+            <div className="w-full max-h-full bg-white rounded-2xl shadow-2xl p-3 sm:p-5">
+              <div className="h-[65vh] sm:h-[75vh] bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center">
+                <img
+                  src={activeImage.src}
+                  alt={activeImage.caption}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+              <p className="mt-3 sm:mt-4 text-sm sm:text-base font-medium text-slate-700">{activeImage.caption}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========== About Preview ========== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
