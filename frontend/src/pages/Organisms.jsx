@@ -72,20 +72,21 @@ export default function Organisms() {
   const [organisms, setOrganisms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [fetchError, setFetchError] = useState(false);
 
   const fetchOrganisms = useCallback(() => {
     fetch('/api/organisms')
       .then(r => r.json())
       .then(data => {
-        if (data.success) setOrganisms(data.organisms);
+        if (data.success) { setOrganisms(data.organisms); setFetchError(false); }
       })
-      .catch(() => {})
+      .catch(() => { setFetchError(true); })
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     fetchOrganisms();
-    const timer = setInterval(fetchOrganisms, 10000);
+    const timer = setInterval(fetchOrganisms, 30000);
     return () => clearInterval(timer);
   }, [fetchOrganisms]);
 
@@ -151,6 +152,10 @@ export default function Organisms() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
                 <span className="ml-2 text-sm text-slate-400">Loading organisms...</span>
+              </div>
+            ) : fetchError && organisms.length === 0 ? (
+              <div className="text-center py-8 text-red-500 text-sm">
+                Failed to load organisms. <button onClick={fetchOrganisms} className="underline hover:text-red-700">Retry</button>
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-sm">

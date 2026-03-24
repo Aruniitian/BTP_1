@@ -27,27 +27,29 @@ export default function Home() {
   const [orgLoading, setOrgLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeImage, setActiveImage] = useState(null);
+  const [statsError, setStatsError] = useState(false);
+  const [orgError, setOrgError] = useState(false);
 
   const fetchStats = useCallback(() => {
     fetch('/api/stats')
       .then(r => r.json())
-      .then(data => { if (data.success) setStats(data); })
-      .catch(() => {})
+      .then(data => { if (data.success) { setStats(data); setStatsError(false); } })
+      .catch(() => { setStatsError(true); })
       .finally(() => setLoading(false));
   }, []);
 
   const fetchOrganisms = useCallback(() => {
     fetch('/api/organisms')
       .then(r => r.json())
-      .then(data => { if (data.success) setOrganisms(data.organisms); })
-      .catch(() => {})
+      .then(data => { if (data.success) { setOrganisms(data.organisms); setOrgError(false); } })
+      .catch(() => { setOrgError(true); })
       .finally(() => setOrgLoading(false));
   }, []);
 
   useEffect(() => {
     fetchStats();
     fetchOrganisms();
-    const timer = setInterval(fetchStats, 5000);
+    const timer = setInterval(fetchStats, 30000);
     return () => clearInterval(timer);
   }, [fetchStats, fetchOrganisms]);
 

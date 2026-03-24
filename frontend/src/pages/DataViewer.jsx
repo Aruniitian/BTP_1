@@ -317,6 +317,7 @@ function RecordCard({ item, index, dataType }) {
 /* ========== Helper Functions ========== */
 
 function getRecordTitle(item, dataType, index) {
+  if (!item || typeof item !== 'object') return `Record ${index + 1}`;
   // Try common ID fields
   const candidates = [
     item.transcript_id, item.protein_id, item.id,

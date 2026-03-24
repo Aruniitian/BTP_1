@@ -100,8 +100,7 @@ function validateDataType(dataType) {
 }
 
 function validateIndex(index) {
-    const n = parseInt(index, 10);
-    return !isNaN(n) && n >= 0 && String(n) === String(parseInt(index, 10));
+    return /^\d+$/.test(String(index));
 }
 
 function sanitizeString(str) {
