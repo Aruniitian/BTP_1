@@ -194,6 +194,7 @@ npm start
 - GET /search (legacy query parser)
 - GET /api/raw-data
 - GET /api/organisms
+- GET /api/organism-datasets/:organism
 - GET /api/stats
 
 ### Admin Auth APIs
@@ -275,7 +276,23 @@ npm start
 - Wait for startup load of _search_index.json.
 - If file missing, run index builder script and restart server.
 
-## 16. Suggested Future Enhancements
+## 16. Organism Dataset Overview (Search Feature)
+
+### Backend
+- **`GET /api/organism-datasets/:organism`** — Returns organised file/dataset information for a single organism.
+  - Scans `AmoebaDB_Release68/<organism>/` for raw files grouped by category (fasta, gaf, gff, txt, xml).
+  - Falls back to `AmoebaDB_JSON/<organism>/` if no Release68 data exists.
+  - Returns cleaned display names (strips `AmoebaDB-68_<Org>_` prefix), file sizes, record counts, and JSON-ready status.
+  - Response includes organism metadata (full name, genus, species, strain) and an array of category objects, each containing an array of files.
+
+### Frontend (Search.jsx)
+- When a user clicks an organism chip in the search results, the frontend fetches `/api/organism-datasets/<organism>`.
+- A card grid is rendered above the search results showing each category with:
+  - Category icon, label, file count, and total size.
+  - Individual file rows with display name, size, record count, and a link to the raw-view page.
+- This works for all 56 organisms in the database.
+
+## 17. Suggested Future Enhancements
 
 - Persistent session store (Redis/file/DB) instead of in-memory map.
 - Automated test suite for all API routes.

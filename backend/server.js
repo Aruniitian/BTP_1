@@ -1773,6 +1773,157 @@ app.get('/api/organisms', (req, res) => {
     }
 });
 
+// ─── Single Organism File/Dataset Overview ───
+// Returns organised file categories (FASTA, GFF, GAF, TXT, XML) for one organism
+app.get('/api/organism-datasets/:organism', (req, res) => {
+    const orgKey = sanitizeString(req.params.organism || '').trim();
+    if (!orgKey || orgKey.length > 200) {
+        return res.status(400).json({ success: false, error: 'Invalid organism key.' });
+    }
+    try {
+        const orgReleasePath = path.join(DL_OUT_DIR, orgKey);
+        const orgJsonPath = path.join(JSON_DIR, orgKey);
+        if (!fs.existsSync(orgReleasePath) && !fs.existsSync(orgJsonPath)) {
+            return res.status(404).json({ success: false, error: 'Organism not found.' });
+        }
+        const info = folderToDisplayName(orgKey);
+        const categories = [];
+        let totalFiles = 0;
+        let totalSize = 0;
+
+        // Scan AmoebaDB_Release68/<organism>/ for raw files by category
+        if (fs.existsSync(orgReleasePath)) {
+            const subs = fs.readdirSync(orgReleasePath, { withFileTypes: true });
+            for (const sub of subs) {
+                if (!sub.isDirectory()) continue;
+                const subPath = path.join(orgReleasePath, sub.name);
+                const meta = RAW_TYPE_MAP[sub.name] || { label: sub.name, icon: 'FileText', color: 'slate' };
+                let catFileCount = 0;
+                let catSize = 0;
+                const files = [];
+                const walkFiles = (dir) => {
+                    const entries = fs.readdirSync(dir, { withFileTypes: true });
+                    for (const e of entries) {
+                        const full = path.join(dir, e.name);
+                        if (e.isDirectory()) walkFiles(full);
+                        else {
+                            const st = fs.statSync(full);
+                            catFileCount++;
+                            catSize += st.size;
+                            const relFile = path.relative(orgReleasePath, full).replace(/\\/g, '/');
+                            // Check for JSON-converted data
+                            const baseName = path.basename(e.name, path.extname(e.name)).replace(/\.gaf$/i, '_gaf');
+                            const jsonMetaPath = path.join(JSON_DIR, orgKey,
+                                path.dirname(relFile),
+                                baseName,
+                                'meta.json');
+                            let jsonReady = fs.existsSync(jsonMetaPath);
+                            let recordCount = 0;
+                            if (jsonReady) {
+                                try {
+                                    const m = JSON.parse(fs.readFileSync(jsonMetaPath, 'utf8'));
+                                    recordCount = m.total || 0;
+                                } catch (_e) { /* ignore */ }
+                            }
+                            // Clean display name: remove AmoebaDB-68_<OrgKey>_ prefix
+                            const escapedOrg = orgKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            let displayName = e.name.replace(new RegExp('^AmoebaDB-\\d+_' + escapedOrg + '_?', 'i'), '');
+                            // If only extension remains (e.g. ".gff" from "AmoebaDB-68_Org.gff"), use "Annotations"
+                            if (displayName.startsWith('.')) displayName = 'Annotations' + displayName;
+                            files.push({
+                                name: e.name,
+                                displayName,
+                                path: `/raw/${orgKey}/${relFile}`,
+                                relFile,
+                                size: st.size,
+                                jsonReady,
+                                records: recordCount,
+                            });
+                        }
+                    }
+                };
+                walkFiles(subPath);
+                categories.push({
+                    key: sub.name,
+                    label: meta.label,
+                    icon: meta.icon,
+                    color: meta.color,
+                    fileCount: catFileCount,
+                    size: catSize,
+                    files,
+                });
+                totalFiles += catFileCount;
+                totalSize += catSize;
+            }
+        }
+
+        // If no Release68 data, try building from AmoebaDB_JSON structure
+        if (categories.length === 0 && fs.existsSync(orgJsonPath)) {
+            const subs = fs.readdirSync(orgJsonPath, { withFileTypes: true });
+            for (const sub of subs) {
+                if (!sub.isDirectory()) continue;
+                const meta = RAW_TYPE_MAP[sub.name] || { label: sub.name, icon: 'FileText', color: 'slate' };
+                // Count dataset folders
+                const datasets = [];
+                const walkJson = (dir, relPrefix) => {
+                    const entries = fs.readdirSync(dir, { withFileTypes: true });
+                    for (const e of entries) {
+                        if (e.isDirectory()) {
+                            const metaFile = path.join(dir, e.name, 'meta.json');
+                            if (fs.existsSync(metaFile)) {
+                                try {
+                                    const m = JSON.parse(fs.readFileSync(metaFile, 'utf8'));
+                                    const escapedOrg2 = orgKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                    let displayName = (m.sourceFile || e.name).replace(new RegExp('^AmoebaDB-\\d+_' + escapedOrg2 + '_?', 'i'), '');
+                                    if (displayName.startsWith('.')) displayName = 'Annotations' + displayName;
+                                    datasets.push({
+                                        name: m.sourceFile || e.name,
+                                        displayName,
+                                        path: `/raw-view?organism=${encodeURIComponent(orgKey)}&file=${encodeURIComponent(relPrefix + '/' + e.name)}`,
+                                        relFile: relPrefix + '/' + e.name,
+                                        size: m.fileSize || 0,
+                                        jsonReady: true,
+                                        records: m.total || 0,
+                                    });
+                                } catch (_e) { /* ignore */ }
+                            } else {
+                                walkJson(path.join(dir, e.name), relPrefix + '/' + e.name);
+                            }
+                        }
+                    }
+                };
+                walkJson(path.join(orgJsonPath, sub.name), sub.name);
+                if (datasets.length > 0) {
+                    const catSize = datasets.reduce((s, d) => s + d.size, 0);
+                    categories.push({
+                        key: sub.name,
+                        label: meta.label,
+                        icon: meta.icon,
+                        color: meta.color,
+                        fileCount: datasets.length,
+                        size: catSize,
+                        files: datasets,
+                    });
+                    totalFiles += datasets.length;
+                    totalSize += catSize;
+                }
+            }
+        }
+
+        res.json({
+            success: true,
+            organism: orgKey,
+            ...info,
+            categories,
+            totalFiles,
+            totalSize,
+        });
+    } catch (err) {
+        console.error('Error in /api/organism-datasets:', err);
+        res.status(500).json({ success: false, error: 'Failed to load organism datasets.' });
+    }
+});
+
 app.get('/api/stats', (req, res) => {
     try {
         const disk = getDiskStatus();

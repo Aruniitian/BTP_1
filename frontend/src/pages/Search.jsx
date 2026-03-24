@@ -5,6 +5,7 @@ import {
   Microscope, FileText, Filter, X, Dna, BookOpen,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   ChevronDown, Code, BarChart, Tags, Layers, List, ExternalLink,
+  HardDrive, FolderOpen, Download,
 } from 'lucide-react';
 
 const PAGE_SIZE = 50;
@@ -32,6 +33,24 @@ function CategoryIcon({ category }) {
   return <entry.Icon className={`w-4 h-4 ${entry.color}`} />;
 }
 
+// Icon map for dataset categories (by key)
+const DATASET_ICON_MAP = {
+  fasta: { Icon: Dna,          bg: 'bg-blue-50',    border: 'border-blue-200',  iconColor: 'text-blue-600',   headerBg: 'bg-blue-50' },
+  gff:   { Icon: List,         bg: 'bg-slate-50',   border: 'border-slate-200', iconColor: 'text-slate-600',  headerBg: 'bg-slate-50' },
+  gaf:   { Icon: BookOpen,     bg: 'bg-lime-50',    border: 'border-lime-200',  iconColor: 'text-lime-600',   headerBg: 'bg-lime-50' },
+  txt:   { Icon: FileText,     bg: 'bg-amber-50',   border: 'border-amber-200', iconColor: 'text-amber-600',  headerBg: 'bg-amber-50' },
+  xml:   { Icon: ExternalLink, bg: 'bg-sky-50',     border: 'border-sky-200',   iconColor: 'text-sky-600',    headerBg: 'bg-sky-50' },
+};
+
+function formatSize(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  let size = bytes;
+  while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+  return `${size < 10 ? size.toFixed(1) : Math.round(size)} ${units[i]}`;
+}
+
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -44,6 +63,8 @@ export default function Search() {
   const [page, setPage] = useState(1);
   const [organismCounts, setOrganismCounts] = useState([]);
   const [collapsedOrgs, setCollapsedOrgs] = useState(new Set());
+  const [orgDatasets, setOrgDatasets] = useState(null);
+  const [loadingDatasets, setLoadingDatasets] = useState(false);
 
   const performSearch = useCallback(async (q, pg = 1, orgF = '') => {
     if (!q || !q.trim()) return;
@@ -94,6 +115,25 @@ export default function Search() {
       performSearch(q, pg, orgF);
     }
   }, [searchParams, performSearch]);
+
+  // Fetch organism dataset overview when an organism filter is active
+  useEffect(() => {
+    if (!orgFilter) {
+      setOrgDatasets(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingDatasets(true);
+    fetch(`/api/organism-datasets/${encodeURIComponent(orgFilter)}`)
+      .then(r => r.json())
+      .then(json => {
+        if (!cancelled && json.success) setOrgDatasets(json);
+        else if (!cancelled) setOrgDatasets(null);
+      })
+      .catch(() => { if (!cancelled) setOrgDatasets(null); })
+      .finally(() => { if (!cancelled) setLoadingDatasets(false); });
+    return () => { cancelled = true; };
+  }, [orgFilter]);
 
   function goToPage(pg) {
     const q = searchParams.get('q') || query;
@@ -303,6 +343,87 @@ export default function Search() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* ── Organism Dataset Overview (shown when organism filter is active) ── */}
+          {orgFilter && (loadingDatasets || orgDatasets) && (
+            <div className="mb-6">
+              {loadingDatasets ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 text-primary-500 animate-spin mr-2" />
+                  <span className="text-sm text-slate-500">Loading dataset overview...</span>
+                </div>
+              ) : orgDatasets && orgDatasets.categories && orgDatasets.categories.length > 0 ? (
+                <div>
+                  {/* Organism info header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+                      <FolderOpen className="w-5 h-5 text-primary-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-800">{orgDatasets.name || orgFilter}</h3>
+                      <p className="text-xs text-slate-500">
+                        {orgDatasets.totalFiles} file{orgDatasets.totalFiles !== 1 ? 's' : ''} · {formatSize(orgDatasets.totalSize)} total
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Dataset category cards grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {orgDatasets.categories.map(cat => {
+                      const style = DATASET_ICON_MAP[cat.key] || DATASET_ICON_MAP.txt;
+                      const CatIcon = style.Icon;
+                      return (
+                        <div key={cat.key} className={`bg-white border ${style.border} rounded-2xl overflow-hidden hover:shadow-md transition-shadow`}>
+                          {/* Category header */}
+                          <div className={`flex items-center gap-3 px-4 py-3 ${style.headerBg}`}>
+                            <div className={`w-9 h-9 rounded-lg ${style.bg} border ${style.border} flex items-center justify-center`}>
+                              <CatIcon className={`w-4.5 h-4.5 ${style.iconColor}`} />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-slate-800 text-sm">{cat.label}</h4>
+                              <p className="text-[11px] text-slate-500">
+                                {cat.fileCount} file{cat.fileCount !== 1 ? 's' : ''} · {formatSize(cat.size)}
+                              </p>
+                            </div>
+                          </div>
+                          {/* Individual files */}
+                          <div className="divide-y divide-slate-100">
+                            {cat.files.map((file, fi) => {
+                              const viewUrl = file.jsonReady
+                                ? `/raw-view?organism=${encodeURIComponent(orgFilter)}&file=${encodeURIComponent(file.relFile)}&name=${encodeURIComponent(orgDatasets.name || orgFilter)}`
+                                : null;
+                              return (
+                                <div key={fi} className="flex items-center gap-3 px-4 py-2.5 group hover:bg-slate-50 transition-colors">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-slate-700 truncate font-medium" title={file.name}>
+                                      {file.displayName || file.name}
+                                    </p>
+                                    <p className="text-[11px] text-slate-400">
+                                      {formatSize(file.size)}
+                                      {file.records > 0 && <span className="ml-2">· {file.records.toLocaleString()} records</span>}
+                                    </p>
+                                  </div>
+                                  {viewUrl && (
+                                    <Link
+                                      to={viewUrl}
+                                      className="text-primary-600 hover:text-primary-800 transition-colors opacity-60 group-hover:opacity-100"
+                                      title="Browse data"
+                                    >
+                                      <ArrowRight className="w-4 h-4" />
+                                    </Link>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
 

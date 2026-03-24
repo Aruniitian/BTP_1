@@ -67,6 +67,20 @@ After this, user only needs to double-click the desktop shortcut.
 - Open http://localhost:3000
 - Use organism/data views and search interface.
 
+### Global Search
+1. Type a query in the search bar (in the navigation bar or on the Search page).
+2. Results appear showing matching genes, proteins, transcripts, etc., grouped by organism.
+3. The **organism summary bar** shows result counts per organism — click any organism chip to filter.
+4. When an organism is selected, an **Organism Dataset Overview** panel appears showing all available data files organised by category:
+   - **FASTA Sequences** — Annotated CDS, Proteins, Transcripts, Genome
+   - **GO Associations (GAF)** — Curated GO, GO associations
+   - **GFF Annotations** — Full annotations, ORF50 predictions
+   - **Text Data** — Codon Usage, Gene Aliases
+   - **XML / Linkout** — NCBI Linkout for Nucleotide and Protein
+5. Each file card shows the file name, size, and record count. Click the arrow (→) to browse the data.
+6. The search results for that organism still appear below the dataset overview.
+7. Click **Show all organisms** to clear the filter and return to the full results view.
+
 ### Admin panel (authorized users)
 - Open http://localhost:3000/admin
 - Login with admin username/password.
